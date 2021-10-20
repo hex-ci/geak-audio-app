@@ -3,8 +3,6 @@ module.exports = {
     electronBuilder: {
       preload: 'src/preload.js',
       chainWebpackMainProcess: config => {
-        config.target('electron-main');
-
         config.module
           .rule('js')
             .test(/\.m?jsx?$/)

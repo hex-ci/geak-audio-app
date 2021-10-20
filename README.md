@@ -1,24 +1,15 @@
-# geak-audio-app
+# Geak Audio 果壳智能音响桌面工具
 
-## Project setup
-```
-npm install
-```
+支持 Windows、Mac 和 Linux
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+请先安装 node js，推荐 14.x
 
-### Compiles and minifies for production
-```
-npm run build
-```
+然后执行 `npm i`
 
-### Lints and fixes files
-```
-npm run lint
-```
+## 开发
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+`npm run electron:serve`
+
+## 构建当前系统的可执行文件
+
+`npm run electron:build`

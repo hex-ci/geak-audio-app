@@ -1,10 +1,10 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
+import { app, protocol, BrowserWindow } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import path from 'path';
-import { pushPlaylist } from './utils';
+import path from 'path'
+import { install } from './event'
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -86,7 +86,4 @@ if (isDevelopment) {
   }
 }
 
-ipcMain.on('push-playlist', async (event, playlistData) => {
-  await pushPlaylist(playlistData);
-  event.reply('push-playlist-ok');
-});
+install();

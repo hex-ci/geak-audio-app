@@ -53,25 +53,7 @@ const searchDevice = () => {
   });
 };
 
-const startServer = async (port, playlistData) => {
-  const app = express();
-  let server;
-
-  app.get('/playlist.json', (req, res) => {
-    res.send(JSON.stringify(playlistData));
-    setImmediate(() => {
-      server.close();
-    })
-  });
-
-  return new Promise((resolve) => {
-    server = app.listen(port, () => {
-      resolve(port);
-    })
-  })
-};
-
-const pushPlaylist = async (playlistData, mediaInfo = {}) => {
+const searchDeviceFromCache = async () => {
   let device;
 
   try {
@@ -98,7 +80,29 @@ const pushPlaylist = async (playlistData, mediaInfo = {}) => {
     device = await searchDevice();
   }
 
-  rendererUrl = `${device.details.URLBase}renderer.xml`;
+  return `${device.details.URLBase}renderer.xml`;
+};
+
+const startServer = async (port, playlistData) => {
+  const app = express();
+  let server;
+
+  app.get('/playlist.json', (req, res) => {
+    res.send(JSON.stringify(playlistData));
+    setImmediate(() => {
+      server.close();
+    })
+  });
+
+  return new Promise((resolve) => {
+    server = app.listen(port, () => {
+      resolve(port);
+    })
+  })
+};
+
+const pushPlaylist = async (playlistData, mediaInfo = {}) => {
+  const rendererUrl = await searchDeviceFromCache();
 
   // 确定 ip 和端口
   const parsedUrl = new URL(rendererUrl);
@@ -136,7 +140,66 @@ const pushPlaylist = async (playlistData, mediaInfo = {}) => {
   console.log('推送完成！');
 };
 
-export {
+const play = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'AVTransport', 'Play', { Speed: 1 });
+}
+
+const stop = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'AVTransport', 'Stop');
+}
+
+const pause = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'AVTransport', 'Pause');
+}
+
+const next = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'AVTransport', 'Next');
+}
+
+const previous = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'AVTransport', 'Previous');
+}
+
+const setVolume = async (volume) => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'RenderingControl', 'SetVolume', { Channel: 'Master', DesiredVolume: volume });
+}
+
+const getVolume = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  const currentVolume = await callAction(client, 'RenderingControl', 'GetVolume');
+
+  return currentVolume.CurrentVolume;
+}
+
+export default {
   searchDevice,
-  pushPlaylist
+  searchDeviceFromCache,
+  pushPlaylist,
+  play,
+  stop,
+  pause,
+  previous,
+  next,
+  setVolume,
+  getVolume
 }

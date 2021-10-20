@@ -2,6 +2,10 @@ module.exports = {
   pluginOptions: {
     electronBuilder: {
       preload: 'src/preload.js',
+      builderOptions: {
+        appId: 'com.hex.geak-audio',
+        productName: 'Geak Audio'
+      },
       chainWebpackMainProcess: config => {
         config.module
           .rule('js')

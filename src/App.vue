@@ -1,5 +1,16 @@
 <template>
   <div class="app">
+    <div class="player">
+      <el-button size="small" @click="play">播放</el-button>
+      <el-button size="small" @click="stop">停止</el-button>
+      <el-button size="small" @click="pause">暂停</el-button>
+      <el-button size="small" @click="previous">上一首</el-button>
+      <el-button size="small" @click="next">下一首</el-button>
+      <div class="volume">
+        <span class="label">音量</span><el-slider v-model="volume" @change="setVolume"></el-slider>
+      </div>
+    </div>
+
     <el-tabs v-model="activeSite">
       <el-tab-pane label="云听电台" name="radio-cn">
         <el-table :data="channels" border style="width: 100%">
@@ -32,14 +43,16 @@ export default {
       fullscreenLoading: false,
       activeSite: 'radio-cn',
       loading: null,
-      channels: []
+      channels: [],
+      volume: 20
     }
   },
 
   mounted() {
-    ipcRenderer.on('push-playlist-ok', () => {
+    ipcRenderer.removeAllListeners();
+    ipcRenderer.on('reply-message', (message) => {
       this.loading?.close();
-      this.$message('推送完成');
+      this.$notify({ title: message });
     });
 
     this.refresh();
@@ -55,6 +68,15 @@ export default {
       });
 
       this.channels = result.data.data.channel;
+    },
+
+    setLoading() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '正在搜索并操作设备，最多可能需要几分钟，请稍候',
+        spinner: 'el-icon-loading',
+        background: 'rgba(255, 255, 255, 1)'
+      });
     },
 
     async pushPlaybackPlaylist(channelId) {
@@ -104,14 +126,38 @@ export default {
     },
 
     pushPlaylist(playlistData) {
-      this.loading = this.$loading({
-        lock: true,
-        text: '正在搜索设备并推送，最多可能需要等几分钟，请稍候',
-        spinner: 'el-icon-loading',
-        background: 'rgba(255, 255, 255, 1)'
-      });
-
+      this.setLoading();
       ipcRenderer.send('push-playlist', playlistData);
+    },
+
+    play() {
+      this.setLoading();
+      ipcRenderer.send('play');
+    },
+
+    stop() {
+      this.setLoading();
+      ipcRenderer.send('stop');
+    },
+
+    pause() {
+      this.setLoading();
+      ipcRenderer.send('pause');
+    },
+
+    previous() {
+      this.setLoading();
+      ipcRenderer.send('previous');
+    },
+
+    next() {
+      this.setLoading();
+      ipcRenderer.send('next');
+    },
+
+    setVolume(volume) {
+      this.setLoading();
+      ipcRenderer.send('set-volume', volume);
     }
   }
 }
@@ -121,5 +167,28 @@ export default {
 .app {
   margin-left: 10px;
   margin-right: 10px;
+
+  .player {
+    margin-top: 10px;
+    border: 1px solid #ebebeb;
+    border-radius: 3px;
+    padding: 20px 30px;
+    display: flex;
+
+    .volume {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-content: stretch;
+      align-items: center;
+      margin-left: 10px;
+
+      .el-slider {
+        width: 200px;
+        margin-left: 15px;
+      }
+    }
+  }
 }
 </style>

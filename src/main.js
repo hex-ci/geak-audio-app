@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { Button, Message, Tabs, TabPane, Container, Header, Main, Footer, Loading, Table, TableColumn } from 'element-ui';
+import { Button, Message, Tabs, TabPane, Container, Header, Main, Footer, Loading, Table, TableColumn, Slider, Notification } from 'element-ui';
 
 import 'normalize.css';
 
@@ -17,9 +17,11 @@ Vue.use(Footer);
 Vue.use(Loading.directive);
 Vue.use(Table);
 Vue.use(TableColumn);
+Vue.use(Slider);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;
+Vue.prototype.$notify = Notification;
 
 Vue.config.productionTip = false
 

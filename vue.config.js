@@ -3,20 +3,29 @@ module.exports = {
     electronBuilder: {
       preload: 'src/preload.js',
       chainWebpackMainProcess: config => {
-        config.module
-          .rule('babel')
-          .before('ts')
-          .use('babel')
-          .loader('babel-loader')
-          .options({
-            presets: ['@vue/cli-plugin-babel/preset']
-          });
+        config.target('electron-main');
 
-        config.merge({
-          externals: {
-            'upnp-device-client': 'require("upnp-device-client")'
-          }
-        });
+        config.module
+          .rule('js')
+            .test(/\.m?jsx?$/)
+            .exclude
+              .add(/node_modules/)
+              .end()
+            .use('babel')
+              .loader('babel-loader')
+              .options({
+                configFile: false,
+                presets: [
+                  ['@babel/preset-env', {
+                    modules: false,
+                    bugfixes: true,
+                    targets: {
+                      node: '10'
+                    },
+                    useBuiltIns: false
+                  }]
+                ]
+              });
       }
     }
   }

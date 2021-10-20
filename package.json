@@ -1,7 +1,12 @@
 {
   "name": "geak-audio-app",
   "version": "0.1.0",
-  "private": true,
+  "author": "Hex",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hex-ci/geak-audio-app.git"
+  },
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

@@ -1,13 +1,14 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import Client from 'upnp-device-client';
 import ssdp from '@achingbrain/ssdp';
-import os from 'os';
 import getPort from 'get-port';
 import { Netmask } from 'netmask';
 import express from 'express';
-import fs from 'fs';
 import axios from 'axios';
 
-const devicePath = `${__dirname}/device.json`;
+const devicePath = path.join(os.homedir(), '.geak-audio-device-cache.json');
 const ipList = Object.values(os.networkInterfaces()).flat().filter(i => i.family == 'IPv4' && !i.internal);
 
 const callAction = (client, type, method, params = {}) => {
@@ -44,7 +45,7 @@ const searchDevice = () => {
         console.log('搜索设备完成！');
 
         // 缓存设备地址
-        fs.writeFileSync(`${__dirname}/device.json`, JSON.stringify(service));
+        fs.writeFileSync(devicePath, JSON.stringify(service));
 
         resolve(service);
       }

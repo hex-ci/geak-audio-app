@@ -1,5 +1,6 @@
 {
   "name": "geak-audio-app",
+  "description": "Geak Audio 果壳智能音响播放工具",
   "version": "0.1.0",
   "author": "Hex",
   "license": "MIT",

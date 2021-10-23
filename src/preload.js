@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld('$ipcRenderer', {
     },
     removeAllListeners: () => {
       ipcRenderer.removeAllListeners();
+    },
+    invoke: (channel, ...args) => {
+      return ipcRenderer.invoke(channel, ...args);
     }
   }
 );

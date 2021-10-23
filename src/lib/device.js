@@ -40,7 +40,11 @@ const searchDevice = () => {
       // console.log(service);
 
       if (service.UDN.indexOf('uuid:geakmusic') === 0) {
-        bus.stop();
+        try {
+          bus.stop();
+        }
+        catch (e) {
+        }
 
         console.log('搜索设备完成！');
 

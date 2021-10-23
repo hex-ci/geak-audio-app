@@ -1,7 +1,14 @@
 import { ipcMain } from 'electron';
+import axios from 'axios';
 import device from './device';
 
 const install = () => {
+
+  // 发送请求
+  ipcMain.handle('request', async (_, options) => {
+    const result = await axios(options);
+    return { data: result.data, status: result.status };
+  });
 
   // 推送播放列表
   ipcMain.on('push-playlist', async (event, playlistData) => {

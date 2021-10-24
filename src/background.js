@@ -42,19 +42,19 @@ async function createWindow() {
     win.loadURL('app://./index.html')
   }
 
-  win.on('minimize',function(event){
+  win.on('minimize',function(event) {
     event.preventDefault();
     win.hide();
   });
 
-  win.on('close', function (event) {
-    if (!app.isQuiting) {
-      event.preventDefault();
-      win.hide();
-    }
+  // win.on('close', function(event) {
+  //   if (!app.isQuiting) {
+  //     event.preventDefault();
+  //     win.hide();
+  //   }
 
-    return false;
-  });
+  //   return false;
+  // });
 
   // eslint-disable-next-line no-undef
   tray = new Tray(path.join(__static, 'logo.png'));

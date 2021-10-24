@@ -198,7 +198,7 @@ const setPlayMode = async (mode = 'SEQUENCE_PLAY') => {
   await callAction(client, 'AVTransport', 'SetPlayMode', { NewPlayMode: mode });
 }
 
-const getInfo = async () => {
+const getDeviceInfo = async () => {
   const rendererUrl = await searchDeviceFromCache();
   const client = new Client(rendererUrl);
 
@@ -208,6 +208,20 @@ const getInfo = async () => {
   return {
     device: JSON.parse(device?.DeviceInfo),
     power: power?.PowerStatus
+  };
+}
+
+const getPlayInfo = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  // FavouriteFindout, GetMediaInfo, GetTransportInfo, GetPositionInfo, GetPlaylistInfo
+  const transportSettings = await callAction(client, 'AVTransport', 'GetTransportSettings');
+  const currentVolume = await callAction(client, 'RenderingControl', 'GetVolume');
+
+  return {
+    transportSettings,
+    volume: currentVolume.CurrentVolume
   };
 }
 
@@ -223,5 +237,6 @@ export default {
   setVolume,
   getVolume,
   setPlayMode,
-  getInfo
+  getDeviceInfo,
+  getPlayInfo
 }

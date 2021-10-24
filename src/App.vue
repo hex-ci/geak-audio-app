@@ -109,13 +109,15 @@ export default {
       this.loading?.close();
       this.$notify({ title: message });
     });
+
+    this.getPlayInfo();
   },
 
   methods: {
     setLoading() {
       this.loading = this.$loading({
         lock: true,
-        text: '正在搜索并操作设备，最多可能需要几分钟，请稍候',
+        text: '正在搜索设备，最多可能需要几分钟，请稍候',
         spinner: 'el-icon-loading',
         background: 'rgba(255, 255, 255, 1)'
       });
@@ -158,12 +160,21 @@ export default {
 
     async showInfo() {
       this.setLoading();
-      const result = await ipcRenderer.invoke('get-info', this.listing);
+      const result = await ipcRenderer.invoke('get-device-info');
       this.loading?.close();
 
       this.deviceInfo = result;
 
       this.dialogVisible = true;
+    },
+
+    async getPlayInfo() {
+      this.setLoading();
+      const result = await ipcRenderer.invoke('get-play-info');
+      this.loading?.close();
+
+      this.mode = result.transportSettings.PlayMode;
+      this.volume = Number(result.volume);
     }
   }
 }

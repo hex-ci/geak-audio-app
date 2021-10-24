@@ -72,8 +72,14 @@ const install = () => {
   });
 
   // 获取音响信息
-  ipcMain.handle('get-info', async () => {
-    const result = await device.getInfo();
+  ipcMain.handle('get-device-info', async () => {
+    const result = await device.getDeviceInfo();
+    return result;
+  });
+
+  // 获取播放信息
+  ipcMain.handle('get-play-info', async () => {
+    const result = await device.getPlayInfo();
     return result;
   });
 };

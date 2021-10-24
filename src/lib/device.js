@@ -3,10 +3,10 @@ import os from 'os';
 import path from 'path';
 import Client from 'upnp-device-client';
 import ssdp from '@achingbrain/ssdp';
-import getPort from 'get-port';
 import { Netmask } from 'netmask';
-import express from 'express';
 import axios from 'axios';
+import cloneDeep from 'lodash/cloneDeep';
+import server from './server';
 
 const devicePath = path.join(os.homedir(), '.geak-audio-device-cache.json');
 const ipList = Object.values(os.networkInterfaces()).flat().filter(i => i.family == 'IPv4' && !i.internal);
@@ -87,25 +87,7 @@ const searchDeviceFromCache = async () => {
   return `${device.details.URLBase}renderer.xml`;
 };
 
-const startServer = async (port, playlistData) => {
-  const app = express();
-  let server;
-
-  app.get('/playlist.json', (req, res) => {
-    res.send(JSON.stringify(playlistData));
-    setImmediate(() => {
-      server.close();
-    })
-  });
-
-  return new Promise((resolve) => {
-    server = app.listen(port, () => {
-      resolve(port);
-    })
-  })
-};
-
-const pushPlaylist = async (playlistData, mediaInfo = {}) => {
+const pushPlaylist = async (playlistData, local = false, mediaInfo = {}) => {
   const rendererUrl = await searchDeviceFromCache();
 
   // 确定 ip 和端口
@@ -113,14 +95,27 @@ const pushPlaylist = async (playlistData, mediaInfo = {}) => {
   const block = new Netmask(parsedUrl.hostname, '255.255.255.0');
 
   const ip = ipList.find(item => block.contains(item.address)).address;
-  const port = await getPort();
+
+  const port = server.getPort();
 
   const playlistUrl = `http://${ip}:${port}/playlist.json`;
   const client = new Client(rendererUrl);
 
   console.log('开始推送播放列表...');
 
-  await startServer(port, playlistData);
+  playlistData = cloneDeep(playlistData);
+
+  if (local) {
+    const tracks = playlistData.TracksMetaData.map(item => ({
+      ...item,
+      url: `http://${ip}:${port}${item.url}`
+    }));
+    playlistData = {
+      TracksMetaData: tracks
+    };
+  }
+
+  server.setPlaylist(playlistData);
 
   const params = {
     InstanceID: 0,
@@ -195,6 +190,27 @@ const getVolume = async () => {
   return currentVolume.CurrentVolume;
 }
 
+const setPlayMode = async (mode = 'SEQUENCE_PLAY') => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  // SEQUENCE_PLAY, RANDOM_PLAY, SINGLE_CYCLE
+  await callAction(client, 'AVTransport', 'SetPlayMode', { NewPlayMode: mode });
+}
+
+const getInfo = async () => {
+  const rendererUrl = await searchDeviceFromCache();
+  const client = new Client(rendererUrl);
+
+  const device = await callAction(client, 'AVTransport', 'GetDeviceInfo');
+  const power = await callAction(client, 'AVTransport', 'GetPowerStatus');
+
+  return {
+    device: JSON.parse(device?.DeviceInfo),
+    power: power?.PowerStatus
+  };
+}
+
 export default {
   searchDevice,
   searchDeviceFromCache,
@@ -205,5 +221,7 @@ export default {
   previous,
   next,
   setVolume,
-  getVolume
+  getVolume,
+  setPlayMode,
+  getInfo
 }

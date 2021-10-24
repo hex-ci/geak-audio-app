@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, Menu, Tray } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import path from 'path'
@@ -12,6 +12,8 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
+
+let tray = null;
 
 async function createWindow() {
   // Create the browser window.
@@ -39,6 +41,44 @@ async function createWindow() {
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
+
+  win.on('minimize',function(event){
+    event.preventDefault();
+    win.hide();
+  });
+
+  win.on('close', function (event) {
+    if (!app.isQuiting) {
+      event.preventDefault();
+      win.hide();
+    }
+
+    return false;
+  });
+
+  // eslint-disable-next-line no-undef
+  tray = new Tray(path.join(__static, 'logo.png'));
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '打开',
+      click() {
+        win.show();
+      }
+    },
+    {
+      label: '退出',
+      click() {
+        app.isQuiting = true;
+        app.quit()
+      }
+    }
+  ]);
+  tray.setToolTip('Geak Audio 果壳智能音响播放工具');
+  tray.setTitle('Geak Audio');
+  tray.setContextMenu(contextMenu);
+  tray.on('click', () => {
+    win.show();
+  });
 }
 
 // Quit when all windows are closed.

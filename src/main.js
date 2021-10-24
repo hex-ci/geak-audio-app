@@ -1,5 +1,26 @@
 import Vue from 'vue'
-import { Button, Message, Tabs, TabPane, Loading, Table, TableColumn, Slider, Notification, Select, Option, Pagination, Cascader, Input } from 'element-ui';
+import {
+  Button,
+  Message,
+  Tabs,
+  TabPane,
+  Loading,
+  Table,
+  TableColumn,
+  Slider,
+  Notification,
+  Select,
+  Option,
+  Pagination,
+  Cascader,
+  Input,
+  Upload,
+  Alert,
+  Dialog,
+  Form,
+  FormItem,
+  Popconfirm
+} from 'element-ui';
 
 import 'normalize.css';
 
@@ -19,6 +40,12 @@ Vue.use(Option);
 Vue.use(Pagination);
 Vue.use(Cascader);
 Vue.use(Input);
+Vue.use(Upload);
+Vue.use(Alert);
+Vue.use(Dialog);
+Vue.use(Form);
+Vue.use(FormItem);
+Vue.use(Popconfirm);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;

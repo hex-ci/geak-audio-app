@@ -33,7 +33,6 @@ export default {
 
   data() {
     return {
-      activeSite: 'radio-cn',
       channels: [],
       typeValue: '',
       pageTotal: 0,
@@ -230,6 +229,7 @@ export default {
 
   .table {
     margin-top: 10px;
+    margin-bottom: 10px;
   }
 }
 </style>

@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import axios from 'axios';
 import device from './device';
+import playlist from './playlist';
 
 const install = () => {
 
@@ -10,9 +11,21 @@ const install = () => {
     return { data: result.data, status: result.status };
   });
 
+  // 获取本地播放列表
+  ipcMain.handle('load-local-playlist', async () => {
+    const result = await playlist.load();
+    return result;
+  });
+
+  // 保存本地播放列表
+  ipcMain.handle('save-local-playlist', async (_, data) => {
+    const result = await playlist.save(data);
+    return result;
+  });
+
   // 推送播放列表
-  ipcMain.on('push-playlist', async (event, playlistData) => {
-    await device.pushPlaylist(playlistData);
+  ipcMain.on('push-playlist', async (event, playlistData, local = false) => {
+    await device.pushPlaylist(playlistData, local);
     event.reply('reply-message', '推送完成');
   });
 
@@ -52,6 +65,17 @@ const install = () => {
     event.reply('reply-message', '操作完成');
   });
 
+  // 设置播放模式
+  ipcMain.on('set-play-mode', async (event, mode) => {
+    await device.setPlayMode(mode);
+    event.reply('reply-message', '操作完成');
+  });
+
+  // 获取音响信息
+  ipcMain.handle('get-info', async () => {
+    const result = await device.getInfo();
+    return result;
+  });
 };
 
 export {

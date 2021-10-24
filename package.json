@@ -27,6 +27,7 @@
     "element-ui": "^2.15.6",
     "express": "^4.17.1",
     "get-port": "^5.0.0",
+    "lodash": "^4.17.21",
     "netmask": "^2.0.2",
     "normalize.css": "^8.0.1",
     "upnp-device-client": "^1.0.2",

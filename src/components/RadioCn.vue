@@ -41,7 +41,6 @@ export default {
 
   data() {
     return {
-      activeSite: 'radio-cn',
       channels: [],
       detail: {},
       selectorAreaValue: '3225',
@@ -122,7 +121,7 @@ export default {
     pushLivePlaylist(channelId) {
       const channelDetail = this.channels.find(item => item.id == channelId);
 
-      this.pushPlaylist( {
+      this.pushPlaylist({
         TracksMetaData: [{
           type: 2,
           uuid: '',
@@ -155,6 +154,7 @@ export default {
 
   .table {
     margin-top: 10px;
+    margin-bottom: 10px;
   }
 }
 </style>

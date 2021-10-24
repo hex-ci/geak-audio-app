@@ -3,8 +3,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('$ipcRenderer', {
-    send: (channel, data) => {
-      ipcRenderer.send(channel, data);
+    send: (channel, ...args) => {
+      ipcRenderer.send(channel, ...args);
     },
     on: (channel, func) => {
       // Deliberately strip event as it includes `sender`

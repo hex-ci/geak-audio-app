@@ -90,6 +90,8 @@ export default {
         path: item.raw.path
       }));
 
+      this.$refs.upload.clearFiles();
+
       this.listing = concat(this.listing, files);
 
       ipcRenderer.invoke('save-local-playlist', this.listing);

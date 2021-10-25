@@ -42,43 +42,45 @@ async function createWindow() {
     win.loadURL('app://./index.html')
   }
 
-  win.on('minimize',function(event) {
-    event.preventDefault();
-    win.hide();
-  });
+  if (process.platform === 'win32') {
+    win.on('minimize',function(event) {
+      event.preventDefault();
+      win.hide();
+    });
 
-  // win.on('close', function(event) {
-  //   if (!app.isQuiting) {
-  //     event.preventDefault();
-  //     win.hide();
-  //   }
+    // win.on('close', function(event) {
+    //   if (!app.isQuiting) {
+    //     event.preventDefault();
+    //     win.hide();
+    //   }
 
-  //   return false;
-  // });
+    //   return false;
+    // });
 
-  // eslint-disable-next-line no-undef
-  tray = new Tray(path.join(__static, 'logo.png'));
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: '打开',
-      click() {
-        win.show();
+    // eslint-disable-next-line no-undef
+    tray = new Tray(path.join(__static, 'logo.png'));
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: '打开',
+        click() {
+          win.show();
+        }
+      },
+      {
+        label: '退出',
+        click() {
+          app.isQuiting = true;
+          app.quit()
+        }
       }
-    },
-    {
-      label: '退出',
-      click() {
-        app.isQuiting = true;
-        app.quit()
-      }
-    }
-  ]);
-  tray.setToolTip('Geak Audio 果壳智能音响播放工具');
-  tray.setTitle('Geak Audio');
-  tray.setContextMenu(contextMenu);
-  tray.on('click', () => {
-    win.show();
-  });
+    ]);
+    tray.setToolTip('Geak Audio 果壳智能音响播放工具');
+    tray.setTitle('Geak Audio');
+    tray.setContextMenu(contextMenu);
+    tray.on('click', () => {
+      win.show();
+    });
+  }
 }
 
 // Quit when all windows are closed.
@@ -125,5 +127,7 @@ if (isDevelopment) {
     })
   }
 }
+
+app.setName('Geak Audio');
 
 install();

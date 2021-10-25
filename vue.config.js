@@ -4,7 +4,8 @@ module.exports = {
       preload: 'src/preload.js',
       builderOptions: {
         appId: 'com.hex.geak-audio',
-        productName: 'Geak Audio'
+        productName: 'Geak Audio',
+        artifactName: 'geak-audio-${os}-${arch}-${version}.${ext}'
       },
       chainWebpackMainProcess: config => {
         config.module

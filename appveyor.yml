@@ -15,6 +15,6 @@ install:
   - yarn
 
 build_script:
-  - yarn dist
+  - yarn electron:build
 
 test: off

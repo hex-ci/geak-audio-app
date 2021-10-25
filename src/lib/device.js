@@ -45,8 +45,8 @@ const searchDevice = () => {
             })
           })
         ).then(() => {
-          console.log('停止搜索设备！');
           if (bus.isCancel) {
+            console.log('停止搜索设备！');
             resolve(false);
           }
           bus = null;
@@ -95,7 +95,7 @@ const searchDeviceFromCache = async () => {
 
     // 测试设备地址
     try {
-      await axios.get(rendererUrl);
+      await axios.get(rendererUrl, { timeout: 1000 });
     }
     catch (e) {
       device = null;

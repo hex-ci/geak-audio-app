@@ -34,8 +34,6 @@ import axios from 'axios';
 import jsonpAdapter from 'axios-jsonp';
 import dayjs from 'dayjs';
 
-const ipcRenderer = window.$ipcRenderer;
-
 export default {
   name: 'RadioCn',
 
@@ -83,7 +81,7 @@ export default {
     },
 
     async pushPlaybackPlaylist(channelId) {
-      console.log('\n正在下载云听电台...');
+      console.log('正在下载云听电台...');
 
       const yesterday = dayjs().subtract(1, 'days').format('YYYY-MM-DD');
       const url = `http://tacc.radio.cn/pcpages/liveSchedules`;
@@ -133,8 +131,7 @@ export default {
     },
 
     pushPlaylist(playlistData) {
-      this.$emit('loading');
-      ipcRenderer.send('push-playlist', playlistData);
+      this.$emit('push-playlist', playlistData);
     }
   }
 }

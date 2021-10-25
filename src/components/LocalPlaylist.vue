@@ -112,8 +112,7 @@ export default {
     },
 
     pushPlaylist(playlistData) {
-      this.$emit('loading');
-      ipcRenderer.send('push-playlist', playlistData, true);
+      this.$emit('push-playlist', playlistData, true);
     }
   }
 }

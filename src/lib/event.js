@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, BrowserWindow } from 'electron';
 import axios from 'axios';
 import device from './device';
 import playlist from './playlist';
@@ -10,6 +10,13 @@ const install = () => {
     const result = await axios(options);
     return { data: result.data, status: result.status };
   });
+
+  ipcMain.handle('hide-window', () => {
+    const windows = BrowserWindow.getAllWindows();
+    windows?.[0]?.hide();
+  });
+
+  ipcMain.handle('get-platform', () => process.platform);
 
   // 获取本地播放列表
   ipcMain.handle('load-local-playlist', async () => {
@@ -24,51 +31,51 @@ const install = () => {
   });
 
   // 推送播放列表
-  ipcMain.on('push-playlist', async (event, playlistData, local = false) => {
+  ipcMain.handle('push-playlist', async (event, playlistData, local = false) => {
     await device.pushPlaylist(playlistData, local);
-    event.reply('reply-message', '推送完成');
+    return true;
   });
 
   // 开始播放
-  ipcMain.on('play', async (event) => {
+  ipcMain.handle('play', async () => {
     await device.play();
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 停止
-  ipcMain.on('stop', async (event) => {
+  ipcMain.handle('stop', async () => {
     await device.stop();
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 暂停
-  ipcMain.on('pause', async (event) => {
+  ipcMain.handle('pause', async () => {
     await device.pause();
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 上一首
-  ipcMain.on('previous', async (event) => {
+  ipcMain.handle('previous', async () => {
     await device.previous();
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 下一首
-  ipcMain.on('next', async (event) => {
+  ipcMain.handle('next', async () => {
     await device.next();
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 设置音量
-  ipcMain.on('set-volume', async (event, volume) => {
+  ipcMain.handle('set-volume', async (event, volume) => {
     await device.setVolume(volume);
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 设置播放模式
-  ipcMain.on('set-play-mode', async (event, mode) => {
+  ipcMain.handle('set-play-mode', async (event, mode) => {
     await device.setPlayMode(mode);
-    event.reply('reply-message', '操作完成');
+    return true;
   });
 
   // 获取音响信息
@@ -86,6 +93,7 @@ const install = () => {
   // 停止搜索设备
   ipcMain.handle('stop-search-device', () => {
     device.stopSearchDevice();
+    return true;
   });
 };
 

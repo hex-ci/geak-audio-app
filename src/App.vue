@@ -7,6 +7,7 @@
       <el-button size="small" @click="previous">上一首</el-button>
       <el-button size="small" @click="next">下一首</el-button>
       <el-button size="small" @click="showInfo">查看音响信息</el-button>
+      <el-button size="small" @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
       <div class="player-item">
         <span class="label">播放模式</span>
         <el-select v-model="mode" @change="changeMode">
@@ -22,25 +23,25 @@
 
     <el-tabs v-model="activeSite">
       <el-tab-pane label="云听电台" name="radio-cn">
-        <radio-cn @loading="setLoading"></radio-cn>
+        <radio-cn @push-playlist="pushPlaylist"></radio-cn>
       </el-tab-pane>
 
       <el-tab-pane label="喜马拉雅电台" name="xmly-radio">
-        <xmly-radio @loading="setLoading"></xmly-radio>
+        <xmly-radio @push-playlist="pushPlaylist"></xmly-radio>
       </el-tab-pane>
 
       <el-tab-pane label="喜马拉雅频道" name="xmly-channel">
-        <xmly-channel @loading="setLoading"></xmly-channel>
+        <xmly-channel @push-playlist="pushPlaylist"></xmly-channel>
       </el-tab-pane>
 
       <el-tab-pane label="本机播放列表" name="local-playlist">
-        <local-playlist @loading="setLoading"></local-playlist>
+        <local-playlist @push-playlist="pushPlaylist"></local-playlist>
       </el-tab-pane>
     </el-tabs>
 
     <el-dialog
       title="音响信息"
-      :visible.sync="dialogVisible"
+      :visible.sync="infoDialogVisible"
       width="600px"
     >
       <el-form ref="form" label-width="120px" v-if="deviceInfo.device">
@@ -67,7 +68,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">关闭</el-button>
+        <el-button @click="infoDialogVisible = false">关闭</el-button>
       </span>
     </el-dialog>
 
@@ -95,6 +96,8 @@ import LocalPlaylist from './components/LocalPlaylist.vue';
 
 const ipcRenderer = window.$ipcRenderer;
 
+const loadingDelay = 800;
+
 export default {
   name: 'App',
 
@@ -109,89 +112,100 @@ export default {
     return {
       fullscreenLoading: false,
       activeSite: 'radio-cn',
-      loading: false,
-      dialogVisible: false,
+      loading: true,
+      infoDialogVisible: false,
       volume: 20,
       mode: 'SEQUENCE_PLAY',
-      deviceInfo: {}
+      deviceInfo: {},
+      platform: '',
+      timer: null
     }
   },
 
-  mounted() {
-    ipcRenderer.removeAllListeners();
-    ipcRenderer.on('reply-message', (message) => {
-      this.unsetLoading();
-      this.$notify({ title: message });
-    });
+  async created() {
+    this.platform = await ipcRenderer.invoke('get-platform');
+  },
 
+  mounted() {
     this.getPlayInfo();
+    window.title = 'aaaaaaaa';
   },
 
   methods: {
     setLoading() {
-      this.loading = true;
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        this.loading = true;
+      }, loadingDelay);
     },
 
     unsetLoading() {
+      this.timer = clearTimeout(this.timer);
       this.loading = false;
     },
 
-    play() {
+    async invoke(name, ...args) {
       this.setLoading();
-      ipcRenderer.send('play');
+      const result = await ipcRenderer.invoke(name, ...args);
+      this.unsetLoading();
+
+      return result;
+    },
+
+    async pushPlaylist(playlistData, isLocal = false) {
+      await this.invoke('push-playlist', playlistData, isLocal);
+      this.$notify({ title: '推送完成', duration: 1000 });
+    },
+
+    play() {
+      this.invoke('play');
     },
 
     stop() {
-      this.setLoading();
-      ipcRenderer.send('stop');
+      this.invoke('stop');
     },
 
     pause() {
-      this.setLoading();
-      ipcRenderer.send('pause');
+      this.invoke('pause');
     },
 
     previous() {
-      this.setLoading();
-      ipcRenderer.send('previous');
+      this.invoke('previous');
     },
 
     next() {
-      this.setLoading();
-      ipcRenderer.send('next');
+      this.invoke('next');
     },
 
     setVolume(volume) {
-      this.setLoading();
-      ipcRenderer.send('set-volume', volume);
+      this.invoke('set-volume', volume);
     },
 
     changeMode(mode) {
-      this.setLoading();
-      ipcRenderer.send('set-play-mode', mode);
+      this.invoke('set-play-mode', mode);
     },
 
     async showInfo() {
-      this.setLoading();
-      const result = await ipcRenderer.invoke('get-device-info');
-      this.unsetLoading();
+      const result = await this.invoke('get-device-info');
 
       this.deviceInfo = result;
 
-      this.dialogVisible = true;
+      this.infoDialogVisible = true;
     },
 
     async getPlayInfo() {
-      this.setLoading();
-      const result = await ipcRenderer.invoke('get-play-info');
-      this.unsetLoading();
+      const result = await this.invoke('get-play-info');
 
-      this.mode = result.transportSettings.PlayMode;
-      this.volume = Number(result.volume);
+      this.mode = result.transportSettings.PlayMode ?? 'SEQUENCE_PLAY';
+      this.volume = Number(result.volume < 0 ? 20 : result.volume);
     },
 
     stopSearchDevice() {
       ipcRenderer.invoke('stop-search-device');
+    },
+
+    minimize() {
+      ipcRenderer.invoke('hide-window');
     }
   }
 }

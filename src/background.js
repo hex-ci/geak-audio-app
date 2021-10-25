@@ -14,13 +14,15 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 let tray = null;
+let win = null;
 
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 1280,
     height: 900,
     center: true,
+    title: '应用正在初始化...',
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -39,24 +41,10 @@ async function createWindow() {
   } else {
     createProtocol('app')
     // Load the index.html when not in development
-    win.loadURL('app://./index.html')
+    await win.loadURL('app://./index.html')
   }
 
   if (process.platform === 'win32') {
-    win.on('minimize',function(event) {
-      event.preventDefault();
-      win.hide();
-    });
-
-    // win.on('close', function(event) {
-    //   if (!app.isQuiting) {
-    //     event.preventDefault();
-    //     win.hide();
-    //   }
-
-    //   return false;
-    // });
-
     // eslint-disable-next-line no-undef
     tray = new Tray(path.join(__static, 'logo.png'));
     const contextMenu = Menu.buildFromTemplate([
@@ -69,18 +57,18 @@ async function createWindow() {
       {
         label: '退出',
         click() {
-          app.isQuiting = true;
           app.quit()
         }
       }
     ]);
-    tray.setToolTip('Geak Audio 果壳智能音响播放工具');
-    tray.setTitle('Geak Audio');
+    tray.setToolTip(win.getTitle());
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
       win.show();
     });
   }
+
+  win.setTitle(`${win.getTitle()} v${app.getVersion()}`);
 }
 
 // Quit when all windows are closed.

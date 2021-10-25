@@ -26,8 +26,6 @@
 <script>
 import request from '../lib/request';
 
-const ipcRenderer = window.$ipcRenderer;
-
 export default {
   name: 'XmlyChannel',
 
@@ -208,8 +206,7 @@ export default {
     },
 
     pushPlaylist(playlistData) {
-      this.$emit('loading');
-      ipcRenderer.send('push-playlist', playlistData);
+      this.$emit('push-playlist', playlistData);
     }
   }
 }

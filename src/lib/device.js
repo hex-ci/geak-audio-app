@@ -11,6 +11,8 @@ import server from './server';
 const devicePath = path.join(os.homedir(), '.geak-audio-device-cache.json');
 const ipList = Object.values(os.networkInterfaces()).flat().filter(i => i.family == 'IPv4' && !i.internal);
 
+let bus = null;
+
 const callAction = (client, type, method, params = {}) => {
   return new Promise((resolve) => {
     client.callAction(type, method, { InstanceID: 0, ...params }, function(err, result) {
@@ -28,32 +30,50 @@ const searchDevice = () => {
   return new Promise((resolve) => {
     console.log('开始搜索设备...');
 
-    const bus = ssdp();
-
-    bus.on('error', console.error);
-
     const usn = 'urn:schemas-upnp-org:device:MediaServer:1';
 
+    if (!bus) {
+      bus = ssdp();
+
+      bus.on('error', console.error);
+
+      bus.on('ready', () => {
+        Promise.all(
+          bus.sockets.map(socket => {
+            return new Promise((resolve) => {
+              socket.on('close', () => resolve())
+            })
+          })
+        ).then(() => {
+          console.log('停止搜索设备！');
+          if (bus.isCancel) {
+            resolve(false);
+          }
+          bus = null;
+        });
+      });
+
+      bus.on(`discover:${usn}`, service => {
+        // console.log(service);
+
+        if (service.UDN.indexOf('uuid:geakmusic') === 0) {
+          try {
+            bus.stop();
+          }
+          catch (e) {
+          }
+
+          console.log('搜索设备完成！');
+
+          // 缓存设备地址
+          fs.writeFileSync(devicePath, JSON.stringify(service));
+
+          resolve(service);
+        }
+      });
+    }
+
     bus.discover(usn);
-
-    bus.on(`discover:${usn}`, service => {
-      // console.log(service);
-
-      if (service.UDN.indexOf('uuid:geakmusic') === 0) {
-        try {
-          bus.stop();
-        }
-        catch (e) {
-        }
-
-        console.log('搜索设备完成！');
-
-        // 缓存设备地址
-        fs.writeFileSync(devicePath, JSON.stringify(service));
-
-        resolve(service);
-      }
-    });
   });
 };
 
@@ -70,25 +90,43 @@ const searchDeviceFromCache = async () => {
     device = await searchDevice();
   }
 
-  let rendererUrl = `${device.details.URLBase}renderer.xml`;
+  if (device !== false) {
+    let rendererUrl = `${device.details.URLBase}renderer.xml`;
 
-  // 测试设备地址
-  try {
-    await axios.get(rendererUrl);
-  }
-  catch (e) {
-    device = null;
+    // 测试设备地址
+    try {
+      await axios.get(rendererUrl);
+    }
+    catch (e) {
+      device = null;
+    }
+
+    if (!device?.details?.URLBase) {
+      device = await searchDevice();
+    }
   }
 
-  if (!device?.details?.URLBase) {
-    device = await searchDevice();
+  if (device === false) {
+    return false;
   }
+  else {
+    return `${device.details.URLBase}renderer.xml`;
+  }
+};
 
-  return `${device.details.URLBase}renderer.xml`;
+const stopSearchDevice = () => {
+  if (bus) {
+    bus.isCancel = true;
+    bus.stop();
+  }
 };
 
 const pushPlaylist = async (playlistData, local = false, mediaInfo = {}) => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
 
   // 确定 ip 和端口
   const parsedUrl = new URL(rendererUrl);
@@ -141,6 +179,11 @@ const pushPlaylist = async (playlistData, local = false, mediaInfo = {}) => {
 
 const play = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   await callAction(client, 'AVTransport', 'Play', { Speed: 1 });
@@ -148,6 +191,11 @@ const play = async () => {
 
 const stop = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   await callAction(client, 'AVTransport', 'Stop');
@@ -155,6 +203,11 @@ const stop = async () => {
 
 const pause = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   await callAction(client, 'AVTransport', 'Pause');
@@ -162,6 +215,11 @@ const pause = async () => {
 
 const next = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   await callAction(client, 'AVTransport', 'Next');
@@ -169,6 +227,11 @@ const next = async () => {
 
 const previous = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   await callAction(client, 'AVTransport', 'Previous');
@@ -176,6 +239,11 @@ const previous = async () => {
 
 const setVolume = async (volume) => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   await callAction(client, 'RenderingControl', 'SetVolume', { Channel: 'Master', DesiredVolume: volume });
@@ -183,6 +251,11 @@ const setVolume = async (volume) => {
 
 const getVolume = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   const currentVolume = await callAction(client, 'RenderingControl', 'GetVolume');
@@ -192,6 +265,11 @@ const getVolume = async () => {
 
 const setPlayMode = async (mode = 'SEQUENCE_PLAY') => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
   const client = new Client(rendererUrl);
 
   // SEQUENCE_PLAY, RANDOM_PLAY, SINGLE_CYCLE
@@ -200,6 +278,14 @@ const setPlayMode = async (mode = 'SEQUENCE_PLAY') => {
 
 const getDeviceInfo = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return {
+      device: {},
+      power: -1
+    };
+  }
+
   const client = new Client(rendererUrl);
 
   const device = await callAction(client, 'AVTransport', 'GetDeviceInfo');
@@ -213,6 +299,14 @@ const getDeviceInfo = async () => {
 
 const getPlayInfo = async () => {
   const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return {
+      transportSettings: {},
+      volume: -1
+    };
+  }
+
   const client = new Client(rendererUrl);
 
   // FavouriteFindout, GetMediaInfo, GetTransportInfo, GetPositionInfo, GetPlaylistInfo
@@ -228,6 +322,7 @@ const getPlayInfo = async () => {
 export default {
   searchDevice,
   searchDeviceFromCache,
+  stopSearchDevice,
   pushPlaylist,
   play,
   stop,
@@ -239,4 +334,4 @@ export default {
   setPlayMode,
   getDeviceInfo,
   getPlayInfo
-}
+};

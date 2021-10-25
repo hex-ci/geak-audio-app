@@ -82,6 +82,11 @@ const install = () => {
     const result = await device.getPlayInfo();
     return result;
   });
+
+  // 停止搜索设备
+  ipcMain.handle('stop-search-device', () => {
+    device.stopSearchDevice();
+  });
 };
 
 export {

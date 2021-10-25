@@ -70,6 +70,20 @@
         <el-button @click="dialogVisible = false">关闭</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog
+      title="搜索设备..."
+      :visible.sync="loading"
+      width="600px"
+      :show-close="false"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+      <p class="loading"><i class="el-icon-loading"></i> 正在搜索设备，可能需要几分钟，请稍候，如取消可能导致程序异常</p>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="stopSearchDevice">取消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -95,7 +109,7 @@ export default {
     return {
       fullscreenLoading: false,
       activeSite: 'radio-cn',
-      loading: null,
+      loading: false,
       dialogVisible: false,
       volume: 20,
       mode: 'SEQUENCE_PLAY',
@@ -106,7 +120,7 @@ export default {
   mounted() {
     ipcRenderer.removeAllListeners();
     ipcRenderer.on('reply-message', (message) => {
-      this.loading?.close();
+      this.unsetLoading();
       this.$notify({ title: message });
     });
 
@@ -115,12 +129,11 @@ export default {
 
   methods: {
     setLoading() {
-      this.loading = this.$loading({
-        lock: true,
-        text: '正在搜索设备，最多可能需要几分钟，请稍候',
-        spinner: 'el-icon-loading',
-        background: 'rgba(255, 255, 255, 1)'
-      });
+      this.loading = true;
+    },
+
+    unsetLoading() {
+      this.loading = false;
     },
 
     play() {
@@ -161,7 +174,7 @@ export default {
     async showInfo() {
       this.setLoading();
       const result = await ipcRenderer.invoke('get-device-info');
-      this.loading?.close();
+      this.unsetLoading();
 
       this.deviceInfo = result;
 
@@ -171,10 +184,14 @@ export default {
     async getPlayInfo() {
       this.setLoading();
       const result = await ipcRenderer.invoke('get-play-info');
-      this.loading?.close();
+      this.unsetLoading();
 
       this.mode = result.transportSettings.PlayMode;
       this.volume = Number(result.volume);
+    },
+
+    stopSearchDevice() {
+      ipcRenderer.invoke('stop-search-device');
     }
   }
 }
@@ -218,6 +235,10 @@ export default {
     + .selector {
       margin-top: 5px;
     }
+  }
+
+  .loading {
+    text-align: center;
   }
 }
 </style>

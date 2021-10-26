@@ -12,11 +12,11 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "electron:build": "vue-cli-service electron:build",
+    "electron:build": "vue-cli-service electron:build --publish never",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
-    "electron:build-all": "vue-cli-service electron:build --mac --win --x64 --arm64"
+    "electron:build-all": "vue-cli-service electron:build --mac --win --x64 --arm64 --publish never"
   },
   "main": "background.js",
   "dependencies": {

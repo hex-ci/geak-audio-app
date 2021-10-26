@@ -24,7 +24,7 @@ https://github.com/hex-ci/geak-audio-app/releases
 
 然后执行 `npm i`
 
-## 调试运行
+### 调试运行
 
 `npm run electron:serve`
 

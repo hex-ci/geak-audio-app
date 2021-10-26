@@ -5,16 +5,15 @@ platform:
 
 cache:
   - node_modules
-  - '%USERPROFILE%\.electron'
 
 init:
   - git config --global core.autocrlf input
 
 install:
   - ps: Install-Product node 14 x64
-  - yarn
+  - npm i
 
 build_script:
-  - yarn electron:build
+  - npm run electron:build
 
 test: off

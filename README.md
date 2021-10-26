@@ -2,10 +2,6 @@
 
 支持 Windows、Mac 和 Linux
 
-请先安装 node js，推荐 14.x
-
-然后执行 `npm i`
-
 ## 功能
 
 * 支持云听电台
@@ -24,8 +20,12 @@ https://github.com/hex-ci/geak-audio-app/releases
 
 ## 开发
 
+请先安装 node js，推荐 14.x
+
+然后执行 `npm i`
+
 `npm run electron:serve`
 
-## 构建当前系统的可执行文件
+### 构建当前系统的可执行文件
 
 `npm run electron:build`

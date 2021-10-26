@@ -12,6 +12,11 @@
 * 支持喜马拉雅电台
 * 支持喜马拉雅频道
 * 支持本地播放列表
+* 支持收藏喜爱的电台或频道
+
+## 下载
+
+https://github.com/hex-ci/geak-audio-app/releases
 
 ## 截图
 

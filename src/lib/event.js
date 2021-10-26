@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow } from 'electron';
 import axios from 'axios';
 import device from './device';
 import playlist from './playlist';
+import favorite from './favorite';
 
 const install = () => {
 
@@ -11,11 +12,13 @@ const install = () => {
     return { data: result.data, status: result.status };
   });
 
+  // 隐藏主窗口
   ipcMain.handle('hide-window', () => {
     const windows = BrowserWindow.getAllWindows();
     windows?.[0]?.hide();
   });
 
+  // 获取当前平台
   ipcMain.handle('get-platform', () => process.platform);
 
   // 获取本地播放列表
@@ -27,6 +30,18 @@ const install = () => {
   // 保存本地播放列表
   ipcMain.handle('save-local-playlist', async (_, data) => {
     const result = await playlist.save(data);
+    return result;
+  });
+
+  // 获取收藏夹
+  ipcMain.handle('load-favorite', async () => {
+    const result = await favorite.load();
+    return result;
+  });
+
+  // 保存收藏夹
+  ipcMain.handle('save-favorite', async (_, data) => {
+    const result = await favorite.save(data);
     return result;
   });
 

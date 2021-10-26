@@ -1,5 +1,5 @@
 <template>
-  <div class="xmly-radio" v-loading="loading">
+  <div class="local-playlist" v-loading="loading">
     <el-alert title="播放本地文件时，请不要关闭本程序，否则会停止播放" type="info" :closable="false"></el-alert>
     <div class="selector">
       <el-upload
@@ -23,7 +23,7 @@
     <el-table :data="listing" border style="width: 100%" class="table">
       <el-table-column prop="file" label="文件名" />
       <el-table-column prop="path" label="全路径" />
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作" width="80">
         <template #default="scope">
           <el-button @click="remove(scope.$index)" type="danger" size="mini">删除</el-button>
         </template>
@@ -119,7 +119,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.xmly-radio {
+.local-playlist {
   .el-alert {
     margin-bottom: 10px;
   }

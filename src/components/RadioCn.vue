@@ -19,10 +19,11 @@
     <el-table :data="channels" border style="width: 100%" class="table">
       <el-table-column prop="name" label="频道" width="180" />
       <el-table-column prop="description" label="描述" />
-      <el-table-column label="操作" width="220">
+      <el-table-column label="操作" width="290">
         <template #default="scope">
-          <el-button @click="pushLivePlaylist(scope.row.id)" size="mini">推送直播</el-button>
+          <el-button @click="pushLivePlaylist(scope.row.id)" type="primary" size="mini">推送直播</el-button>
           <el-button @click="pushPlaybackPlaylist(scope.row.id)" size="mini">推送昨日回放</el-button>
+          <el-button @click="favorite(scope.row.id, scope.row.name)" size="mini">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -33,6 +34,8 @@
 import axios from 'axios';
 import jsonpAdapter from 'axios-jsonp';
 import dayjs from 'dayjs';
+
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36';
 
 export default {
   name: 'RadioCn',
@@ -52,20 +55,17 @@ export default {
     this.refresh();
   },
 
-  mounted() {
-  },
-
   methods: {
     async refresh() {
       const url = 'http://tacc.radio.cn/pcpages/radiopages';
 
       const result = await axios.get(url, {
         adapter: jsonpAdapter,
+        headers: { 'User-Agent': userAgent },
         params: {
           place_id: this.selectorAreaValue,
           type_id: this.selectorTypeValue
-        },
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36' }
+        }
       });
 
       if (result.data.result_code == 0) {
@@ -88,11 +88,11 @@ export default {
 
       const result = await axios.get(url, {
         adapter: jsonpAdapter,
+        headers: { 'User-Agent': userAgent },
         params: {
           date: yesterday,
           channel_id: channelId
-        },
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36' }
+        }
       });
 
       console.log('下载完成！正在生成播放列表...');
@@ -132,6 +132,48 @@ export default {
 
     pushPlaylist(playlistData) {
       this.$emit('push-playlist', playlistData);
+    },
+
+    favorite(id, title) {
+      this.$emit('add-favorite', {
+        name: 'radio-cn',
+        category: '云听电台',
+        id,
+        title,
+        extra: {
+          placeId: this.selectorAreaValue,
+          typeId: this.selectorTypeValue
+        }
+      });
+    },
+
+    // 收藏夹推送
+    async favoritePush(favoriteData) {
+      const url = 'http://tacc.radio.cn/pcpages/radiopages';
+
+      const result = await axios.get(url, {
+        adapter: jsonpAdapter,
+        headers: { 'User-Agent': userAgent },
+        params: {
+          place_id: favoriteData.extra.placeId,
+          type_id: favoriteData.extra.typeId
+        }
+      });
+
+      if (result.data.result_code == 0) {
+        const channels = result.data.data.top;
+        const channelDetail = channels.find(item => item.id == favoriteData.id);
+
+        this.pushPlaylist({
+          TracksMetaData: [{
+            type: 2,
+            uuid: '',
+            metadata: '',
+            url: `ffmpeg://${channelDetail.streams[0].url}`,
+            title: channelDetail.name
+          }]
+        });
+      }
     }
   }
 }

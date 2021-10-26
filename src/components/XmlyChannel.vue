@@ -1,5 +1,5 @@
 <template>
-  <div class="xmly-radio" v-loading="loading">
+  <div class="xmly-channel" v-loading="loading">
     <div class="selector">
       搜索：<el-input v-model.trim="searchValue" ></el-input> <el-button type="primary" @click="search()">搜索</el-button>
     </div>
@@ -12,9 +12,10 @@
       <el-table-column prop="albumTitle" label="专辑名称" />
       <el-table-column prop="albumUserNickName" label="作者" />
       <el-table-column prop="intro" label="介绍" />
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button @click="pushPlaybackPlaylist(scope.row.albumId)" size="mini">推送</el-button>
+          <el-button @click="pushPlaybackPlaylist(scope.row.albumId)" type="primary" size="mini">推送</el-button>
+          <el-button @click="favorite(scope.row.albumId, scope.row.albumTitle)" size="mini">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -207,13 +208,26 @@ export default {
 
     pushPlaylist(playlistData) {
       this.$emit('push-playlist', playlistData);
+    },
+
+    favorite(id, title) {
+      this.$emit('add-favorite', {
+        name: 'xmly-channel',
+        category: '喜马拉雅频道',
+        id,
+        title
+      });
+    },
+
+    favoritePush(favoriteData) {
+      this.pushPlaybackPlaylist(favoriteData.id);
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.xmly-radio {
+.xmly-channel {
   .selector {
     + .selector {
       margin-top: 5px;

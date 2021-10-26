@@ -19,6 +19,7 @@ import {
   Dialog,
   Form,
   FormItem,
+  Popover,
   Popconfirm
 } from 'element-ui';
 
@@ -45,6 +46,7 @@ Vue.use(Alert);
 Vue.use(Dialog);
 Vue.use(Form);
 Vue.use(FormItem);
+Vue.use(Popover);
 Vue.use(Popconfirm);
 
 Vue.prototype.$message = Message;

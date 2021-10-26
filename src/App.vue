@@ -23,19 +23,23 @@
 
     <el-tabs v-model="activeSite">
       <el-tab-pane label="云听电台" name="radio-cn">
-        <radio-cn @push-playlist="pushPlaylist"></radio-cn>
+        <radio-cn @push-playlist="pushPlaylist" @add-favorite="addFavorite" ref="radio-cn" />
       </el-tab-pane>
 
       <el-tab-pane label="喜马拉雅电台" name="xmly-radio">
-        <xmly-radio @push-playlist="pushPlaylist"></xmly-radio>
+        <xmly-radio @push-playlist="pushPlaylist" @add-favorite="addFavorite" ref="xmly-radio" />
       </el-tab-pane>
 
       <el-tab-pane label="喜马拉雅频道" name="xmly-channel">
-        <xmly-channel @push-playlist="pushPlaylist"></xmly-channel>
+        <xmly-channel @push-playlist="pushPlaylist" @add-favorite="addFavorite" ref="xmly-channel" />
       </el-tab-pane>
 
       <el-tab-pane label="本机播放列表" name="local-playlist">
-        <local-playlist @push-playlist="pushPlaylist"></local-playlist>
+        <local-playlist @push-playlist="pushPlaylist" />
+      </el-tab-pane>
+
+      <el-tab-pane label="收藏夹" name="my-favorite">
+        <my-favorite @push-playlist="pushPlaylist" @favorite-push="favoritePush" ref="my-favorite" />
       </el-tab-pane>
     </el-tabs>
 
@@ -93,6 +97,7 @@ import RadioCn from './components/RadioCn.vue';
 import XmlyRadio from './components/XmlyRadio.vue';
 import XmlyChannel from './components/XmlyChannel.vue';
 import LocalPlaylist from './components/LocalPlaylist.vue';
+import MyFavorite from './components/MyFavorite.vue';
 
 const ipcRenderer = window.$ipcRenderer;
 
@@ -105,7 +110,8 @@ export default {
     RadioCn,
     XmlyRadio,
     XmlyChannel,
-    LocalPlaylist
+    LocalPlaylist,
+    MyFavorite
   },
 
   data() {
@@ -154,7 +160,7 @@ export default {
 
     async pushPlaylist(playlistData, isLocal = false) {
       await this.invoke('push-playlist', playlistData, isLocal);
-      this.$notify({ title: '推送完成', duration: 1000 });
+      this.$notify({ type: 'success', title: '推送完成', duration: 1000 });
     },
 
     play() {
@@ -206,6 +212,14 @@ export default {
 
     minimize() {
       ipcRenderer.invoke('hide-window');
+    },
+
+    addFavorite(favoriteData) {
+      this.$refs['my-favorite'].addFavorite(favoriteData);
+    },
+
+    favoritePush(favoriteData) {
+      this.$refs[favoriteData.name].favoritePush(favoriteData);
     }
   }
 }

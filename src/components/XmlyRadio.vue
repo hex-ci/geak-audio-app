@@ -14,16 +14,17 @@
         </el-select>
       </div>
       <div class="selector-item">
-        <el-button type="primary" @click="refresh()">刷新</el-button>
+        <el-button @click="refresh()">刷新</el-button>
       </div>
     </div>
 
     <el-table :data="channels" border style="width: 100%" class="table">
       <el-table-column prop="name" label="频道" />
       <el-table-column prop="programName" label="当前节目" />
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button @click="pushLivePlaylist(scope.row.id)" size="mini">推送</el-button>
+          <el-button @click="pushLivePlaylist(scope.row.id)" type="primary" size="mini">推送</el-button>
+          <el-button @click="favorite(scope.row.id, scope.row.name)" size="mini">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -116,6 +117,37 @@ export default {
 
     pushPlaylist(playlistData) {
       this.$emit('push-playlist', playlistData);
+    },
+
+    favorite(id, title) {
+      this.$emit('add-favorite', {
+        name: 'xmly-radio',
+        category: '喜马拉雅电台',
+        id,
+        title
+      });
+    },
+
+    async favoritePush(favoriteData) {
+      const url = 'https://live.ximalaya.com/live-web/v1/radio';
+
+      const result = await request(url, {
+        params: {
+          radioId: favoriteData.id
+        }
+      });
+
+      if (result.data.ret == 0) {
+        this.pushPlaylist({
+          TracksMetaData: [{
+            type: 2,
+            uuid: '',
+            metadata: '',
+            url: `ffmpeg://${result.data.data.playUrl.aac64}`,
+            title: result.data.data.name
+          }]
+        });
+      }
     }
   }
 }

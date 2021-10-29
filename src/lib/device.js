@@ -319,6 +319,21 @@ const getPlayInfo = async () => {
   };
 }
 
+// 关机
+// time = 0 为立即关机
+// time = 999 为重启
+const shutdown = async (time = 0) => {
+  const rendererUrl = await searchDeviceFromCache();
+
+  if (rendererUrl === false) {
+    return false;
+  }
+
+  const client = new Client(rendererUrl);
+
+  await callAction(client, 'AVTransport', 'TimingShutdown', { TimeOuts: time });
+}
+
 export default {
   searchDevice,
   searchDeviceFromCache,
@@ -333,5 +348,6 @@ export default {
   getVolume,
   setPlayMode,
   getDeviceInfo,
-  getPlayInfo
+  getPlayInfo,
+  shutdown
 };

@@ -110,6 +110,14 @@ const install = () => {
     device.stopSearchDevice();
     return true;
   });
+
+  // 关机或重启
+  // time = 0 为立即关机
+  // time = 999 为重启
+  ipcMain.handle('shutdown', async (event, time = 0) => {
+    await device.shutdown(time);
+    return true;
+  });
 };
 
 export {

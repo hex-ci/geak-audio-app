@@ -1,23 +1,28 @@
 <template>
   <div class="app">
     <div class="player">
-      <el-button size="small" @click="play">播放</el-button>
-      <el-button size="small" @click="stop">停止</el-button>
-      <el-button size="small" @click="pause">暂停</el-button>
-      <el-button size="small" @click="previous">上一首</el-button>
-      <el-button size="small" @click="next">下一首</el-button>
-      <el-button size="small" @click="showInfo">查看音响信息</el-button>
-      <el-button size="small" @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
-      <div class="player-item">
-        <span class="label">播放模式</span>
-        <el-select v-model="mode" @change="changeMode">
+      <el-button-group>
+        <el-button size="small" @click="play">播放</el-button>
+        <el-button size="small" @click="stop">停止</el-button>
+        <el-button size="small" @click="pause">暂停</el-button>
+        <el-button size="small" @click="previous">上一首</el-button>
+        <el-button size="small" @click="next">下一首</el-button>
+      </el-button-group>
+      <el-button-group>
+        <el-button size="small" @click="reboot">重启</el-button>
+        <el-button size="small" @click="shutdown">关机</el-button>
+        <el-button size="small" @click="showInfo">查看音响信息</el-button>
+        <el-button size="small" @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
+      </el-button-group>
+      <el-button-group>
+        <el-select v-model="mode" @change="changeMode" size="small">
           <el-option label="顺序播放" value="SEQUENCE_PLAY"></el-option>
           <el-option label="随机播放" value="RANDOM_PLAY"></el-option>
           <el-option label="单曲循环" value="SINGLE_CYCLE"></el-option>
         </el-select>
-      </div>
+      </el-button-group>
       <div class="player-item">
-        <span class="label">音量</span><el-slider v-model="volume" @change="setVolume"></el-slider>
+        <el-button type="text" @click="mute">音量</el-button><el-slider v-model="volume" @change="setVolume"></el-slider>
       </div>
     </div>
 
@@ -191,6 +196,21 @@ export default {
       this.invoke('set-play-mode', mode);
     },
 
+    mute() {
+      this.volume = 0;
+      this.setVolume(0);
+    },
+
+    async reboot() {
+      await this.invoke('shutdown', 999);
+      this.$notify({ type: 'success', title: '正在重启...', duration: 1000 });
+    },
+
+    async shutdown() {
+      await this.invoke('shutdown');
+      this.$notify({ type: 'success', title: '正在关机...', duration: 1000 });
+    },
+
     async showInfo() {
       const result = await this.invoke('get-device-info');
 
@@ -237,6 +257,22 @@ export default {
     border-radius: 3px;
     padding: 20px 30px;
     display: flex;
+    align-items: center;
+
+    .el-button-group {
+      + .el-button-group {
+        margin-left: 5px;
+      }
+    }
+
+    .el-slider {
+      width: 200px;
+      margin-left: 15px;
+    }
+
+    .el-select {
+      width: 120px;
+    }
 
     .player-item {
       display: flex;
@@ -246,16 +282,6 @@ export default {
       align-content: stretch;
       align-items: center;
       margin-left: 20px;
-
-      .el-slider {
-        width: 200px;
-        margin-left: 15px;
-      }
-
-      .el-select {
-        margin-left: 10px;
-        width: 120px;
-      }
     }
   }
 

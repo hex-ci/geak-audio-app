@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import {
   Button,
+  ButtonGroup,
   Message,
   Tabs,
   TabPane,
@@ -30,6 +31,7 @@ import App from './App.vue'
 // import store from './store'
 
 Vue.use(Button);
+Vue.use(ButtonGroup);
 Vue.use(Tabs);
 Vue.use(TabPane);
 Vue.use(Loading.directive);

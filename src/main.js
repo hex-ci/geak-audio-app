@@ -21,7 +21,8 @@ import {
   Form,
   FormItem,
   Popover,
-  Popconfirm
+  Popconfirm,
+  MessageBox
 } from 'element-ui';
 
 import 'normalize.css';
@@ -54,6 +55,10 @@ Vue.use(Popconfirm);
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;
 Vue.prototype.$notify = Notification;
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+Vue.prototype.$confirm = MessageBox.confirm;
+Vue.prototype.$prompt = MessageBox.prompt;
 
 Vue.config.productionTip = false
 

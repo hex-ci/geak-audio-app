@@ -9,20 +9,22 @@
         <el-button size="small" @click="next">下一首</el-button>
       </el-button-group>
       <el-button-group>
-        <el-button size="small" @click="reboot">重启</el-button>
-        <el-button size="small" @click="shutdown">关机</el-button>
-        <el-button size="small" @click="showInfo">查看音响信息</el-button>
-        <el-button size="small" @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
-      </el-button-group>
-      <el-button-group>
         <el-select v-model="mode" @change="changeMode" size="small">
           <el-option label="顺序播放" value="SEQUENCE_PLAY"></el-option>
           <el-option label="随机播放" value="RANDOM_PLAY"></el-option>
           <el-option label="单曲循环" value="SINGLE_CYCLE"></el-option>
         </el-select>
       </el-button-group>
-      <div class="player-item">
-        <el-button type="text" @click="mute">音量</el-button><el-slider v-model="volume" @change="setVolume"></el-slider>
+      <el-button-group>
+        <el-button size="small" @click="showInfo">查看音响信息</el-button>
+        <el-button size="small" @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
+        <el-button size="small" @click="reboot">重启</el-button>
+        <el-button size="small" @click="shutdown">关机</el-button>
+      </el-button-group>
+      <div class="player-item-outer">
+        <div class="player-item">
+          <el-button type="text" @click="mute">音量</el-button><el-slider v-model="volume" @change="changeVolume"></el-slider>
+        </div>
       </div>
     </div>
 
@@ -126,6 +128,7 @@ export default {
       loading: true,
       infoDialogVisible: false,
       volume: 20,
+      oldVolume: 20,
       mode: 'SEQUENCE_PLAY',
       deviceInfo: {},
       platform: '',
@@ -192,23 +195,45 @@ export default {
       this.invoke('set-volume', volume);
     },
 
+    changeVolume(volume) {
+      this.oldVolume = volume;
+      this.setVolume(volume);
+    },
+
     changeMode(mode) {
       this.invoke('set-play-mode', mode);
     },
 
     mute() {
-      this.volume = 0;
-      this.setVolume(0);
+      if (this.volume > 0) {
+        this.oldVolume = this.volume;
+        this.volume = 0;
+      }
+      else {
+        this.volume = this.oldVolume;
+      }
+
+      this.setVolume(this.volume);
     },
 
     async reboot() {
-      await this.invoke('shutdown', 999);
-      this.$notify({ type: 'success', title: '正在重启...', duration: 1000 });
+      try {
+        await this.$confirm('继续吗?', '重启');
+        await this.invoke('shutdown', 999);
+        this.$notify({ type: 'success', title: '正在重启...', duration: 1000 });
+      }
+      catch (e) {
+      }
     },
 
     async shutdown() {
-      await this.invoke('shutdown');
-      this.$notify({ type: 'success', title: '正在关机...', duration: 1000 });
+      try {
+        await this.$confirm('继续吗?', '关机');
+        await this.invoke('shutdown');
+        this.$notify({ type: 'success', title: '正在关机...', duration: 1000 });
+      }
+      catch (e) {
+      }
     },
 
     async showInfo() {
@@ -224,6 +249,7 @@ export default {
 
       this.mode = result.transportSettings.PlayMode ?? 'SEQUENCE_PLAY';
       this.volume = Number(result.volume < 0 ? 20 : result.volume);
+      this.oldVolume = this.volume;
     },
 
     stopSearchDevice() {
@@ -274,14 +300,19 @@ export default {
       width: 120px;
     }
 
-    .player-item {
+    .player-item-outer {
+      flex: 1 auto;
       display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      align-content: stretch;
-      align-items: center;
-      margin-left: 20px;
+      justify-content: flex-end;
+
+      .player-item {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-content: stretch;
+        align-items: center;
+      }
     }
   }
 

@@ -9,7 +9,7 @@
        multiple
        :auto-upload="false"
        :show-file-list="false" :on-change="change"
-       accept=".mp3,.wav,.m4a"
+       accept=".mp3,.wav,.m4a,.flac,.ape"
       >
         <el-button slot="trigger" type="primary">添加文件</el-button>
       </el-upload>

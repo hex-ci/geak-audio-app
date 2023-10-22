@@ -1,4 +1,4 @@
-# Geak Audio 果壳智能音响桌面工具
+# GEAK Audio 果壳智能音响桌面工具
 
 [![Build status](https://ci.appveyor.com/api/projects/status/nkl6xpsm2obp5ayd?svg=true)](https://ci.appveyor.com/project/hex-ci/geak-audio-app)
 

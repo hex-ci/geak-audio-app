@@ -33,7 +33,22 @@ const searchDevice = () => {
     const usn = 'urn:schemas-upnp-org:device:MediaServer:1';
 
     if (!bus) {
-      bus = ssdp();
+      const sockets = ipList.map((item) => ({
+        type: 'udp4',
+        broadcast: {
+          address: '239.255.255.250',
+          port: 1900
+        },
+        bind: {
+          address: item.address,
+          port: 1900
+        },
+        maxHops: 4
+      }));
+
+      bus = ssdp({
+        sockets,
+      });
 
       bus.on('error', console.error);
 

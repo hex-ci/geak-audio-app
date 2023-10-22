@@ -29,9 +29,9 @@
     </div>
 
     <el-tabs v-model="activeSite">
-      <el-tab-pane label="云听电台" name="radio-cn">
+      <!-- <el-tab-pane label="云听电台" name="radio-cn">
         <radio-cn @push-playlist="pushPlaylist" @add-favorite="addFavorite" ref="radio-cn" />
-      </el-tab-pane>
+      </el-tab-pane> -->
 
       <el-tab-pane label="喜马拉雅电台" name="xmly-radio">
         <xmly-radio @push-playlist="pushPlaylist" @add-favorite="addFavorite" ref="xmly-radio" />
@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import RadioCn from './components/RadioCn.vue';
+// import RadioCn from './components/RadioCn.vue';
 import XmlyRadio from './components/XmlyRadio.vue';
 import XmlyChannel from './components/XmlyChannel.vue';
 import LocalPlaylist from './components/LocalPlaylist.vue';
@@ -114,7 +114,7 @@ export default {
   name: 'App',
 
   components: {
-    RadioCn,
+    // RadioCn,
     XmlyRadio,
     XmlyChannel,
     LocalPlaylist,
@@ -124,7 +124,7 @@ export default {
   data() {
     return {
       fullscreenLoading: false,
-      activeSite: 'radio-cn',
+      activeSite: 'xmly-radio',
       loading: true,
       infoDialogVisible: false,
       volume: 20,
@@ -142,7 +142,6 @@ export default {
 
   mounted() {
     this.getPlayInfo();
-    window.title = 'aaaaaaaa';
   },
 
   methods: {

@@ -19,7 +19,7 @@
     </div>
 
     <el-table :data="channels" border style="width: 100%" class="table">
-      <el-table-column prop="name" label="频道" />
+      <el-table-column prop="name" label="频道" width="300" />
       <el-table-column prop="programName" label="当前节目" />
       <el-table-column label="操作" width="150">
         <template #default="scope">

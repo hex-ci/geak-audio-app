@@ -1,5 +1,5 @@
 <template>
-  <div class="radio-cn">
+  <div class="radio-cn" v-loading="loading">
     <div class="selector">
       <div class="selector-item">
         地区：
@@ -12,6 +12,9 @@
         <el-select v-model="selectorTypeValue" @change="changeSelector">
           <el-option v-for="item in selectorType" :key="item.id" :label="item.categoryName" :value="item.id"></el-option>
         </el-select>
+      </div>
+      <div class="selector-item">
+        <el-button @click="refresh()">刷新</el-button>
       </div>
     </div>
 
@@ -62,6 +65,7 @@ export default {
       selectorTypeValue: '0',
       selectorArea: [],
       selectorType: [],
+      loading: false,
     }
   },
 
@@ -109,12 +113,14 @@ export default {
     },
 
     async getRadioList(areaId, typeId) {
+      this.loading = true;
       const result = await this.request('https://ytmsout.radio.cn/web/appBroadcast/list', {
         params: {
           provinceCode: areaId,
           categoryId: typeId,
         },
       });
+      this.loading = false;
 
       if (result.data.code == 0) {
         return result.data.data;

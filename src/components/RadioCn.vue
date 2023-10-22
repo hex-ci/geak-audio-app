@@ -4,26 +4,25 @@
       <div class="selector-item">
         地区：
         <el-select v-model="selectorAreaValue" @change="changeSelector">
-          <el-option v-for="item in selectorArea" :key="item.id" :label="item.name" :value="item.id"></el-option>
+          <el-option v-for="item in selectorArea" :key="item.provinceCode" :label="item.provinceName" :value="item.provinceCode"></el-option>
         </el-select>
       </div>
       <div class="selector-item">
         分类：
         <el-select v-model="selectorTypeValue" @change="changeSelector">
-          <el-option label="全部" value=""></el-option>
-          <el-option v-for="item in selectorType" :key="item.id" :label="item.name" :value="item.id"></el-option>
+          <el-option v-for="item in selectorType" :key="item.id" :label="item.categoryName" :value="item.id"></el-option>
         </el-select>
       </div>
     </div>
 
     <el-table :data="channels" border style="width: 100%" class="table">
-      <el-table-column prop="name" label="频道" width="180" />
-      <el-table-column prop="description" label="描述" />
-      <el-table-column label="操作" width="290">
+      <el-table-column prop="title" label="频道" width="300" />
+      <el-table-column prop="subtitle" label="当前节目" />
+      <el-table-column label="操作" width="180">
         <template #default="scope">
-          <el-button @click="pushLivePlaylist(scope.row.id)" type="primary" size="mini">推送直播</el-button>
-          <el-button @click="pushPlaybackPlaylist(scope.row.id)" size="mini">推送昨日回放</el-button>
-          <el-button @click="favorite(scope.row.id, scope.row.name)" size="mini">收藏</el-button>
+          <el-button @click="pushLivePlaylist(scope.row.contentId)" type="primary" size="mini">推送直播</el-button>
+          <!-- <el-button @click="pushPlaybackPlaylist(scope.row.contentId)" size="mini">推送昨日回放</el-button> -->
+          <el-button @click="favorite(scope.row.contentId, scope.row.title)" size="mini">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -32,10 +31,25 @@
 
 <script>
 import axios from 'axios';
-import jsonpAdapter from 'axios-jsonp';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
+import md5 from '../lib/md5';
 
-const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36';
+const key = 'f0fc4c668392f9f9a447e48584c214ee';
+
+const getParamsOrderByKey = (params) => {
+  let sortArr = Object.keys(params).sort();
+  let sortParams = [];
+  let tmpKey = '';
+
+  if (sortArr.length) {
+    for (let i = 0; i < sortArr.length; i++) {
+      tmpKey = sortArr[i];
+      sortParams.push(tmpKey + '=' + params[tmpKey]);
+    }
+  }
+
+  return sortParams.join('&');
+}
 
 export default {
   name: 'RadioCn',
@@ -44,10 +58,10 @@ export default {
     return {
       channels: [],
       detail: {},
-      selectorAreaValue: '3225',
-      selectorTypeValue: '',
+      selectorAreaValue: 0,
+      selectorTypeValue: '0',
       selectorArea: [],
-      selectorType: []
+      selectorType: [],
     }
   },
 
@@ -57,22 +71,56 @@ export default {
 
   methods: {
     async refresh() {
-      const url = 'http://tacc.radio.cn/pcpages/radiopages';
+      this.getRadioProvinceList();
+      this.getRadioCategoryList();
+      this.channels = await this.getRadioList(this.selectorAreaValue, this.selectorTypeValue);
+    },
 
-      const result = await axios.get(url, {
-        adapter: jsonpAdapter,
-        headers: { 'User-Agent': userAgent },
+    async request(url, opts = {}) {
+      var tm = new Date().getTime();
+      var signText = (opts.params ? (getParamsOrderByKey(opts.params) + '&') : '') + 'timestamp=' + tm + '&key=' + key;
+
+      return await axios.get(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          equipmentId: '0000',
+          platformCode: 'WEB',
+          timestamp: tm,
+          sign: md5(signText),
+        },
+        ...opts,
+      });
+    },
+
+    async getRadioProvinceList() {
+      const result = await this.request('https://ytmsout.radio.cn/web/appProvince/list/all');
+
+      if (result.data.code == 0) {
+        this.selectorArea = result.data.data;
+      }
+    },
+
+    async getRadioCategoryList() {
+      const result = await this.request('https://ytmsout.radio.cn/web/appCategory/list/all');
+
+      if (result.data.code == 0) {
+        this.selectorType = result.data.data;
+      }
+    },
+
+    async getRadioList(areaId, typeId) {
+      const result = await this.request('https://ytmsout.radio.cn/web/appBroadcast/list', {
         params: {
-          place_id: this.selectorAreaValue,
-          type_id: this.selectorTypeValue
-        }
+          provinceCode: areaId,
+          categoryId: typeId,
+        },
       });
 
-      if (result.data.result_code == 0) {
-        this.detail = result.data.data;
-        this.channels = this.detail.top;
-        this.selectorArea = this.detail.place;
-        this.selectorType = this.detail.type;
+      if (result.data.code == 0) {
+        return result.data.data;
+      }
+      else {
+        return [];
       }
     },
 
@@ -80,52 +128,51 @@ export default {
       this.refresh();
     },
 
-    async pushPlaybackPlaylist(channelId) {
-      console.log('正在下载云听电台...');
+    // async pushPlaybackPlaylist(channelId) {
+    //   console.log('正在下载云听电台...');
 
-      const yesterday = dayjs().subtract(1, 'days').format('YYYY-MM-DD');
-      const url = `http://tacc.radio.cn/pcpages/liveSchedules`;
+    //   const yesterday = dayjs().subtract(1, 'days').format('YYYY-MM-DD');
 
-      const result = await axios.get(url, {
-        adapter: jsonpAdapter,
-        headers: { 'User-Agent': userAgent },
-        params: {
-          date: yesterday,
-          channel_id: channelId
-        }
-      });
+    //   const result = await this.request('https://ytmsout.radio.cn/web/appProgram/listByDate', {
+    //     params: {
+    //       date: yesterday,
+    //       broadcastId: channelId,
+    //     },
+    //   });
 
-      console.log('下载完成！正在生成播放列表...');
+    //   if (result.data.code == 0) {
+    //     console.log('下载完成！正在生成播放列表...');
 
-      const playlistData = { TracksMetaData: [] };
+    //     const playlistData = { TracksMetaData: [] };
 
-      result.data.data.program.forEach((item) => {
-        if (!item.stream) {
-          return;
-        }
+    //     result.data.data.forEach((item) => {
+    //       if (!item.downloadUrl) {
+    //         return;
+    //       }
 
-        playlistData.TracksMetaData.push({
-          type: 2,
-          uuid: '',
-          metadata: '',
-          url: item.stream[0].url,
-          title: item.programName
-        });
-      });
+    //       playlistData.TracksMetaData.push({
+    //         type: 2,
+    //         uuid: '',
+    //         metadata: '',
+    //         url: `${item.downloadUrl}`,
+    //         title: item.programName,
+    //       });
+    //     });
 
-      this.pushPlaylist(playlistData);
-    },
+    //     this.pushPlaylist(playlistData);
+    //   }
+    // },
 
     pushLivePlaylist(channelId) {
-      const channelDetail = this.channels.find(item => item.id == channelId);
+      const channelDetail = this.channels.find(item => item.contentId == channelId);
 
       this.pushPlaylist({
         TracksMetaData: [{
           type: 2,
           uuid: '',
           metadata: '',
-          url: `ffmpeg://${channelDetail.streams[0].url}`,
-          title: channelDetail.name
+          url: `ffmpeg://${channelDetail.playUrlLow}`,
+          title: channelDetail.title
         }]
       });
     },
@@ -149,31 +196,18 @@ export default {
 
     // 收藏夹推送
     async favoritePush(favoriteData) {
-      const url = 'http://tacc.radio.cn/pcpages/radiopages';
+      const channels = await this.getRadioList(favoriteData.extra.placeId, favoriteData.extra.typeId);
+      const channelDetail = channels.find(item => item.contentId == favoriteData.id);
 
-      const result = await axios.get(url, {
-        adapter: jsonpAdapter,
-        headers: { 'User-Agent': userAgent },
-        params: {
-          place_id: favoriteData.extra.placeId,
-          type_id: favoriteData.extra.typeId
-        }
+      this.pushPlaylist({
+        TracksMetaData: [{
+          type: 2,
+          uuid: '',
+          metadata: '',
+          url: `ffmpeg://${channelDetail.playUrlLow}`,
+          title: channelDetail.title
+        }]
       });
-
-      if (result.data.result_code == 0) {
-        const channels = result.data.data.top;
-        const channelDetail = channels.find(item => item.id == favoriteData.id);
-
-        this.pushPlaylist({
-          TracksMetaData: [{
-            type: 2,
-            uuid: '',
-            metadata: '',
-            url: `ffmpeg://${channelDetail.streams[0].url}`,
-            title: channelDetail.name
-          }]
-        });
-      }
     }
   }
 }

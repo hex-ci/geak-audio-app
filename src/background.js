@@ -135,7 +135,7 @@ else {
     }
   }
 
-  app.setName('Geak Audio');
+  app.setName('GEAK Audio');
 
   install();
 }

@@ -1,17 +1,11 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, Menu, Tray } from 'electron'
-import { registerAppProtocol } from './lib/protocol'
+import { app, BrowserWindow, Menu, Tray } from 'electron'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import path from 'path'
 import { install } from './lib/event'
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-
-// Scheme must be registered before the app is ready
-protocol.registerSchemesAsPrivileged([
-  { scheme: 'app', privileges: { secure: true, standard: true } }
-])
 
 let tray = null;
 let win = null;
@@ -41,9 +35,8 @@ async function createWindow() {
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
-    registerAppProtocol('app')
-    // Load the index.html when not in development
-    await win.loadURL('app://./index.html')
+    // 生产：从 asar 里用 file:// 加载
+    await win.loadFile(path.join(__dirname, 'index.html'))
   }
 
   if (process.platform === 'win32') {

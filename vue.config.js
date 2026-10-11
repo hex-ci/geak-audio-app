@@ -19,7 +19,10 @@ class DropCssDefaultImportWarningPlugin {
 }
 
 module.exports = {
-  publicPath: isElectronBuild ? 'app://./' : '/',
+  // electron 生产构建：直接用 file:// 加载 asar 里的 index.html，因此资源必须走相对路径。
+  // （原先用自定义 app:// 协议 + 绝对 app://./ 路径，实测在打包后导航 ERR_FAILED、白屏；
+  //   诊断与结论见 docs/electron-build-notes.md。）
+  publicPath: isElectronBuild ? './' : '/',
   configureWebpack: {
     plugins: [new DropCssDefaultImportWarningPlugin()]
   },

@@ -107,3 +107,5 @@ dist
 /dist_electron
 package-lock.json
 .DS_Store
+
+.recon/

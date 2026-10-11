@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2022
 
 platform:
   - x64
@@ -10,7 +10,7 @@ init:
   - git config --global core.autocrlf input
 
 install:
-  - ps: Install-Product node 14 x64
+  - ps: Install-Product node 22 x64
   - npm i
 
 build_script:

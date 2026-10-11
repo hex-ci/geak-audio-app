@@ -22,9 +22,11 @@ https://github.com/hex-ci/geak-audio-app/releases
 
 ## 开发
 
-请先安装 node js，推荐 14.x
+请先安装 node js，推荐 22.x
 
 然后执行 `npm i`
+
+如果 npm 版本为 11 及以上，`npm i` 可能跳过 electron 的安装脚本，需要再执行一次 `npm install-scripts approve electron`
 
 ### 调试运行
 

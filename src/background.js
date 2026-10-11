@@ -1,7 +1,7 @@
 'use strict'
 
 import { app, protocol, BrowserWindow, Menu, Tray } from 'electron'
-import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
+import { registerAppProtocol } from './lib/protocol'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import path from 'path'
 import { install } from './lib/event'
@@ -41,7 +41,7 @@ async function createWindow() {
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
-    createProtocol('app')
+    registerAppProtocol('app')
     // Load the index.html when not in development
     await win.loadURL('app://./index.html')
   }

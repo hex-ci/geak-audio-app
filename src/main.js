@@ -22,7 +22,11 @@ import {
   FormItem,
   Popover,
   Popconfirm,
-  MessageBox
+  MessageBox,
+  Switch,
+  InputNumber,
+  Divider,
+  Tooltip
 } from 'element-ui';
 
 import 'normalize.css';
@@ -51,6 +55,10 @@ Vue.use(Form);
 Vue.use(FormItem);
 Vue.use(Popover);
 Vue.use(Popconfirm);
+Vue.use(Switch);
+Vue.use(InputNumber);
+Vue.use(Divider);
+Vue.use(Tooltip);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$loading = Loading.service;

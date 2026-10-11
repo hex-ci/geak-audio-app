@@ -171,4 +171,3 @@
 | `A_ARG_TYPE_ConnectionID` | i4 | no |  |
 | `A_ARG_TYPE_AVTransportID` | i4 | no |  |
 | `A_ARG_TYPE_RcsID` | i4 | no |  |
-

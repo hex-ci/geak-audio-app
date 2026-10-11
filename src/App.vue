@@ -48,6 +48,10 @@
       <el-tab-pane label="收藏夹" name="my-favorite">
         <my-favorite @push-playlist="pushPlaylist" @favorite-push="favoritePush" ref="my-favorite" />
       </el-tab-pane>
+
+      <el-tab-pane label="设备管理" name="device-manager">
+        <device-manager ref="device-manager" />
+      </el-tab-pane>
     </el-tabs>
 
     <el-dialog
@@ -105,6 +109,7 @@ import XmlyRadio from './components/XmlyRadio.vue';
 import XmlyChannel from './components/XmlyChannel.vue';
 import LocalPlaylist from './components/LocalPlaylist.vue';
 import MyFavorite from './components/MyFavorite.vue';
+import DeviceManager from './components/DeviceManager.vue';
 
 const ipcRenderer = window.$ipcRenderer;
 
@@ -118,7 +123,8 @@ export default {
     XmlyRadio,
     XmlyChannel,
     LocalPlaylist,
-    MyFavorite
+    MyFavorite,
+    DeviceManager
   },
 
   data() {
@@ -166,8 +172,14 @@ export default {
     },
 
     async pushPlaylist(playlistData, isLocal = false) {
-      await this.invoke('push-playlist', playlistData, isLocal);
-      this.$notify({ type: 'success', title: '推送完成', duration: 1000 });
+      const ok = await this.invoke('push-playlist', playlistData, isLocal, this.mode);
+
+      if (ok) {
+        this.$notify({ type: 'success', title: '推送完成', duration: 1000 });
+      }
+      else {
+        this.$notify({ type: 'error', title: '推送失败', message: '音响拒绝了本次推送，请查看主进程日志', duration: 3000 });
+      }
     },
 
     play() {

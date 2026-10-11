@@ -45,10 +45,10 @@ const install = () => {
     return result;
   });
 
-  // 推送播放列表
-  ipcMain.handle('push-playlist', async (event, playlistData, local = false) => {
-    await device.pushPlaylist(playlistData, local);
-    return true;
+  // 推送播放列表（mode 是界面当前播放模式，决定 geakmusic:// 里的循环模式）
+  ipcMain.handle('push-playlist', async (event, playlistData, local = false, mode = 'SEQUENCE_PLAY') => {
+    const result = await device.pushPlaylist(playlistData, local, {}, mode);
+    return result !== false;
   });
 
   // 开始播放
@@ -118,6 +118,67 @@ const install = () => {
     await device.shutdown(time);
     return true;
   });
+
+  // ---------------------------------------------------------------------------
+  // 设备管理：与 app 的设备管理能力一一对应（见 docs/geak-protocol.md §5）
+  //
+  // 注意：device.js 里的 getWifiInfo / getAccountInfo **故意不暴露给渲染进程**——
+  // 这两个接口会明文返回 WiFi 密码与账号凭据（邮箱/密码/token），不该进界面层。
+  // ---------------------------------------------------------------------------
+
+  // 收藏（设备侧“我的收藏”）
+  ipcMain.handle('record-favourite', async () => device.record());
+  ipcMain.handle('get-favourite-list', async () => device.getFavouriteList());
+  ipcMain.handle('favourite-findout', async () => device.favouriteFindout());
+  ipcMain.handle('favourite-delete', async (event, title) => device.favouriteDelete(title));
+
+  // 内置播放列表（按键 1..6 / 我的收藏等）
+  ipcMain.handle('get-inter-list', async (event, index = 0) => device.getInterList(index));
+  ipcMain.handle('get-play-list-count', async (event, index = 0) => device.getPlayListCount(index));
+  ipcMain.handle('inter-list-add', async (event, index, tracksMetaData) => device.interListAdd(index, tracksMetaData));
+  ipcMain.handle('inter-list-delete', async (event, index, title) => device.interListDelete(index, title));
+  ipcMain.handle('play-list-item', async (event, index, playlistIndex) => device.playListItem(index, playlistIndex));
+  ipcMain.handle('add-play-list', async (event, index) => device.addPlayList(index));
+  ipcMain.handle('get-playlist-info', async () => device.getPlaylistInfo());
+  ipcMain.handle('set-playlist-info', async (event, playlistInfo) => device.setPlaylistInfo(playlistInfo));
+
+  // 闹钟
+  ipcMain.handle('list-alarms', async () => device.listAlarms());
+  ipcMain.handle('create-alarm', async (event, alarm) => device.createAlarm(alarm));
+  ipcMain.handle('update-alarm', async (event, id, alarm) => device.updateAlarm(id, alarm));
+  ipcMain.handle('destroy-alarm', async (event, id) => device.destroyAlarm(id));
+  ipcMain.handle('enable-alarm', async (event, id, enable) => device.enableAlarm(id, enable));
+
+  // 时间 / 时区 / 网络时间
+  ipcMain.handle('get-time-zone', async () => device.getTimeZone());
+  ipcMain.handle('set-time-zone', async (event, index, currentTimeZone) => device.setTimeZone(index, currentTimeZone));
+  ipcMain.handle('get-time-now', async () => device.getTimeNow());
+  ipcMain.handle('set-time-now', async (event, desiredTime) => device.setTimeNow(desiredTime));
+  ipcMain.handle('get-internet-time', async () => device.getInternetTime());
+  ipcMain.handle('enable-internet-time', async (event, enable) => device.enableInternetTime(enable));
+
+  // 定时关机 / 按键锁
+  ipcMain.handle('get-timing', async () => device.getTiming());
+  ipcMain.handle('set-timing-shutdown', async (event, timeouts) => device.shutdown(timeouts));
+  ipcMain.handle('get-hold-status', async () => device.getHoldStatus());
+  ipcMain.handle('hold-button', async (event, enable) => device.holdButton(enable));
+
+  // 设备改名
+  ipcMain.handle('rename-device', async (event, newName) => device.rename(newName));
+
+  // WiFi（只读：只给 SSID/信号，不给密码——密码接口未暴露）
+  ipcMain.handle('get-wifi-list', async () => device.getWifiList());
+
+  // 扩展接口（参数必须是 {"ActionType":{"action_type":N}} 这种 JSON，见文档）
+  ipcMain.handle('get-extra-interface', async (event, actionType) => device.getExtraInterface(actionType));
+  ipcMain.handle('set-extra-interface', async (event, parameter) => device.setExtraInterface(parameter));
+
+  // 传输/进度（界面状态用）
+  ipcMain.handle('seek', async (event, target, unit = 'REL_TIME') => device.seek(target, unit));
+  ipcMain.handle('get-media-info', async () => device.getMediaInfo());
+  ipcMain.handle('get-position-info', async () => device.getPositionInfo());
+  ipcMain.handle('get-transport-info', async () => device.getTransportInfo());
+  ipcMain.handle('get-current-transport-actions', async () => device.getCurrentTransportActions());
 };
 
 export {

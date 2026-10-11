@@ -32,17 +32,15 @@
     "npmRebuild": false
   },
   "dependencies": {
-    "@achingbrain/ssdp": "^2.1.2",
     "axios": "^0.23.0",
     "core-js": "^3.33.1",
     "dayjs": "^1.11.10",
-    "element-ui": "2.15.6",
+    "element-ui": "^2.15.14",
     "express": "^4.18.2",
     "get-port": "^5.1.1",
     "lodash": "^4.17.21",
     "netmask": "^2.0.2",
     "normalize.css": "^8.0.1",
-    "upnp-device-client": "^1.0.2",
     "vue": "^2.7.14",
     "vue-router": "^3.6.5",
     "vuex": "^3.6.2"

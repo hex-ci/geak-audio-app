@@ -46,6 +46,7 @@ GEAK Audio（果壳智能音响桌面工具）：Electron 应用，通过 UPnP/D
 - 渲染层构建只剩 3 条告警，全是 webpack 体积/性能提示（与升级前的 cli4 一致）。曾经多出来的 30 条 `export 'default' (imported as '...') was not found` 是误报：vue-loader 15 的 style 块与 babel-plugin-component 生成的 theme-chalk 引入都固定写 default import，而 css-loader 6 的样式模块没有导出。vue.config.js 里的 `DropCssDefaultImportWarningPlugin` 在 afterSeal 阶段把它们从 `compilation.warnings` 摘掉——`ignoreWarnings` / `stats.warningsFilter` 对它无效，因为 `@soda/friendly-errors-webpack-plugin` 直接读那个数组。改这条正则时必须保证只匹配样式模块（`?vue&type=style` / `theme-chalk`），别把真正的 export 报错一起吞掉。换 vue-loader 版本解决不了：15.x 全系（15.9.5–15.11.1）codegen 是同一行，上游只在 17（Vue 3 线）改成副作用导入。
 - electron 构建下 css 里的字体必须是相对路径（vue.config.js 里 fonts 规则的 `generator.publicPath = '../'`）。改成绝对 `app:///fonts/...` 会被 Chromium 当成 host 解析，字体 404。
 - publicPath 只能在 vue.config.js 的 `publicPath` 选项里改；在 chainWebpack 里改 `output.publicPath` 会被 vue-cli 直接报错拒绝。electron 生产构建用 `app://./`，dev 与纯 web 构建用 `/`（靠 `IS_ELECTRON` + `NODE_ENV` 区分）。
+- Node 26 装不了 electron 二进制：postinstall 走 extract-zip → yauzl → fd-slicer，在 Node 26 下解压会**静默死锁**——只落下 1 个文件、进程却以 exit 0 退出，看起来像装好了，实际 `node_modules/electron/dist` 里没有 electron.exe。用 `C:\Program Files\nodejs` 的 Node 24（npm 12）跑 `npm rebuild electron` 就正常。注意 agent 的 bash 会话里 Hermes 自带的 Node 26 会抢到 PATH 最前，跟用户自己终端里的 Node 版本不一致。
 - 必须有真实音响在同一局域网。搜索设备可能持续几分钟，App.vue 搜索对话框里的「取消」是唯一退路；换了网络或找不到设备时，删掉 `~/.geak-audio-device-cache.json` 强制重新发现。
 - SSDP 会给每个非内网 IPv4 绑定 UDP 1900（`device.js`）。1900 被占（其他 DLNA/SSDP 客户端、或已有一个本应用实例）就搜不到设备。
 - 单实例锁（`requestSingleInstanceLock`）：已有实例在跑时再 `electron:serve`，新进程会立刻退出。

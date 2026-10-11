@@ -12,6 +12,8 @@ const mainWatch = ['src/background.js', 'src/preload.js'];
 const electronPath = require('electron');
 
 const children = [];
+// 主动重启的 electron 进程：它们的 exit 只是我们杀掉的，不能顺带结束整个 dev 进程
+const intentionalExit = new WeakSet();
 const killAll = () => {
   children.forEach((child) => {
     if (!child.killed) {
@@ -56,30 +58,61 @@ const waitForServer = (url) => new Promise((resolve) => {
   children.push(devServer);
 
   let electron = null;
-  const startElectron = () => {
-    if (electron && !electron.killed) {
-      electron.kill();
+
+  // 杀掉当前实例并等它真正退出：background.js 有 requestSingleInstanceLock，
+  // 老进程没释放锁就启动新实例，新实例会立刻 app.quit()。
+  const stopElectron = () => new Promise((resolve) => {
+    const current = electron;
+    electron = null;
+
+    if (!current || current.exitCode !== null || current.killed) {
+      resolve();
+      return;
     }
 
-    electron = spawn(electronPath, [outDir], {
-      cwd: root,
-      stdio: 'inherit',
-      env: {
-        ...process.env,
-        WEBPACK_DEV_SERVER_URL: url,
-        ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
-      }
+    intentionalExit.add(current);
+    current.once('exit', resolve);
+    current.kill();
+  });
+
+  // 串行化重启，避免改文件太快时两次重建交叠
+  let restartQueue = Promise.resolve();
+
+  const startElectron = () => {
+    restartQueue = restartQueue.then(async () => {
+      await stopElectron();
+
+      const current = spawn(electronPath, [outDir], {
+        cwd: root,
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          WEBPACK_DEV_SERVER_URL: url,
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        }
+      });
+
+      electron = current;
+      children.push(current);
+
+      current.on('exit', () => {
+        // 主动重启杀掉的实例不算「用户关闭了应用」
+        if (intentionalExit.has(current)) {
+          intentionalExit.delete(current);
+          return;
+        }
+        killAll();
+        process.exit(0);
+      });
+    }).catch((err) => {
+      console.error('启动 electron 失败：', err);
     });
 
-    children.push(electron);
-    electron.on('exit', () => {
-      killAll();
-      process.exit(0);
-    });
+    return restartQueue;
   };
 
   await waitForServer(url);
-  startElectron();
+  await startElectron();
 
   // 主进程文件变化时重新打包并重启 electron
   let timer = null;
@@ -93,7 +126,7 @@ const waitForServer = (url) => new Promise((resolve) => {
       timer = setTimeout(async () => {
         console.log(`\n${path.relative(root, file)} 已变化，重新打包主进程...`);
         await rebuild();
-        startElectron();
+        await startElectron();
       }, 100);
     });
   });

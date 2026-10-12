@@ -52,13 +52,16 @@
     "lodash": "^4.17.21",
     "netmask": "^2.0.2",
     "normalize.css": "^8.0.1",
-    "sass": "^1.105.1",
+    "sass-embedded": "^1.105.1",
     "vite": "^8.3.4",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vue": "^3.5.43",
     "vue-eslint-parser": "^10.4.1"
   },
   "allowScripts": {
-    "electron": true
+    "electron": true,
+    "@parcel/watcher": true,
+    "electron-winstaller": true,
+    "esbuild": true
   }
 }

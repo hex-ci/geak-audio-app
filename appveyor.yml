@@ -4,7 +4,8 @@ platform:
   - x64
 
 cache:
-  - node_modules
+  # 校验文件变化时缓存失效，避免还原到旧依赖树（Vue2/Webpack 时期）后 npm i 报 ERESOLVE
+  - node_modules -> package.json
 
 init:
   - git config --global core.autocrlf input

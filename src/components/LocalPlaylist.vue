@@ -11,11 +11,15 @@
        :show-file-list="false" :on-change="change"
        accept=".mp3,.wav,.m4a,.flac,.ape"
       >
-        <el-button slot="trigger" type="primary">添加文件</el-button>
+        <template #trigger>
+          <el-button type="primary">添加文件</el-button>
+        </template>
       </el-upload>
       <el-button type="primary" @click="push">推送</el-button>
       <el-popconfirm title="确认删除所有播放列表内容吗？" class="clear" @confirm="removeAll">
-        <el-button type="danger" slot="reference">清除播放列表</el-button>
+        <template #reference>
+          <el-button type="danger">清除播放列表</el-button>
+        </template>
       </el-popconfirm>
       <el-button @click="refresh">刷新</el-button>
     </div>
@@ -25,7 +29,7 @@
       <el-table-column prop="path" label="全路径" />
       <el-table-column label="操作" width="80">
         <template #default="scope">
-          <el-button @click="remove(scope.$index)" type="danger" size="mini">删除</el-button>
+          <el-button @click="remove(scope.$index)" type="danger" size="small">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -37,6 +41,14 @@ import debounce from 'lodash/debounce';
 import concat from 'lodash/concat';
 
 const ipcRenderer = window.$ipcRenderer;
+
+// Electron 32 起 File.path 被移除，路径改由 preload 暴露的 webUtils 获取
+const filePath = (file) => {
+  if (window.$electron && typeof window.$electron.getPathForFile === 'function') {
+    return window.$electron.getPathForFile(file) || '';
+  }
+  return file.path || '';
+};
 
 const baseName = (str) => {
   var idx = str.lastIndexOf('/')
@@ -85,10 +97,13 @@ export default {
     },
 
     addFile: debounce(function () {
-      const files = this.$refs.upload.uploadFiles.map(item => ({
-        file: baseName(item.raw.path),
-        path: item.raw.path
-      }));
+      const files = this.$refs.upload.uploadFiles.map(item => {
+        const path = filePath(item.raw);
+        return {
+          file: baseName(path),
+          path
+        };
+      });
 
       this.$refs.upload.clearFiles();
 

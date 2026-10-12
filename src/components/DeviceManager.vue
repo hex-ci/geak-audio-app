@@ -16,7 +16,9 @@
           <el-form-item label="改名：">
             <el-input v-model="newName" placeholder="新的设备名称" style="width: 240px" />
             <el-tooltip content="改名后设备会短暂离线约 10 秒（UPnP 服务重启），稍后自动恢复" placement="top">
-              <i class="el-icon-question" />
+              <!-- EP 图标必须包在 el-icon 里：图标组件输出的 <svg> 没有 width/height，
+                   裸用会按 SVG 默认尺寸撑开（实测 571×571px） -->
+              <el-icon><QuestionFilled /></el-icon>
             </el-tooltip>
             <el-button type="primary" size="small" :loading="busy" @click="renameDevice">保存</el-button>
           </el-form-item>
@@ -29,19 +31,19 @@
           <el-table-column prop="StartTime" label="时间" width="90" />
           <el-table-column prop="StartDate" label="日期" width="120" />
           <el-table-column label="重复" width="110">
-            <template slot-scope="scope">{{ recurrenceLabel(scope.row.Recurrence) }}</template>
+            <template #default="scope">{{ recurrenceLabel(scope.row.Recurrence) }}</template>
           </el-table-column>
           <el-table-column label="启用" width="90">
-            <template slot-scope="scope">
-              <el-button type="text" @click="toggleAlarm(scope.row)">
+            <template #default="scope">
+              <el-button text @click="toggleAlarm(scope.row)">
                 {{ String(scope.row.Enabled) === '1' ? '停用' : '启用' }}
               </el-button>
             </template>
           </el-table-column>
           <el-table-column prop="Volume" label="音量" width="70" />
           <el-table-column label="操作">
-            <template slot-scope="scope">
-              <el-button type="text" @click="removeAlarm(scope.row)">删除</el-button>
+            <template #default="scope">
+              <el-button text @click="removeAlarm(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -91,7 +93,7 @@
       <el-tab-pane label="按键锁" name="hold">
         <el-form label-width="110px" size="small">
           <el-form-item label="按键锁：">
-            <el-switch :value="holdStatus === 1" @change="toggleHold" />
+            <el-switch :model-value="holdStatus === 1" @change="toggleHold" />
             <span class="unit">{{ holdStatus === 1 ? '已锁定（设备按键不可用）' : '未锁定' }}</span>
           </el-form-item>
         </el-form>
@@ -104,8 +106,8 @@
         <el-table :data="favourites" size="small" empty-text="收藏是空的">
           <el-table-column prop="title" label="标题" />
           <el-table-column label="操作" width="100">
-            <template slot-scope="scope">
-              <el-button type="text" @click="removeFavourite(scope.row.title)">删除</el-button>
+            <template #default="scope">
+              <el-button text @click="removeFavourite(scope.row.title)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -124,8 +126,8 @@
         <el-table :data="interList" size="small" empty-text="该列表为空" style="margin-top: 8px">
           <el-table-column prop="title" label="标题" />
           <el-table-column label="操作" width="100">
-            <template slot-scope="scope">
-              <el-button type="text" @click="playBuiltin(scope.$index)">播放</el-button>
+            <template #default="scope">
+              <el-button text @click="playBuiltin(scope.$index)">播放</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -153,13 +155,13 @@
             <el-button size="small" :loading="busy" @click="applyTimeZone">设置</el-button>
           </el-form-item>
           <el-form-item label="网络时间：">
-            <el-switch :value="internetTime === 1" @change="toggleInternetTime" />
+            <el-switch :model-value="internetTime === 1" @change="toggleInternetTime" />
           </el-form-item>
           <el-form-item label="提示音：">
-            <el-switch :value="extra.tone === 1" @change="value => setExtra(2, value)" />
+            <el-switch :model-value="extra.tone === 1" @change="value => setExtra(2, value)" />
           </el-form-item>
           <el-form-item label="开机自动播放：">
-            <el-switch :value="extra.autoplay === 1" @change="value => setExtra(3, value)" />
+            <el-switch :model-value="extra.autoplay === 1" @change="value => setExtra(3, value)" />
           </el-form-item>
           <el-form-item label="当前 WiFi：">
             <span v-if="currentWifi">{{ currentWifi.ssid }}（信号 {{ currentWifi.level }}，类型 {{ currentWifi.type }}）</span>
@@ -382,7 +384,7 @@ export default {
         return this.notify(`未能确认该闹钟状态（设备返回：${JSON.stringify(result)}）`, 'error');
       }
 
-      this.$set(row, 'Enabled', enabled ? '1' : '0');
+      row.Enabled = enabled ? '1' : '0';
       this.notify(enabled ? '已启用该闹钟' : '已停用该闹钟');
     },
 

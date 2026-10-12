@@ -1,0 +1,27 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "tsconfig.*.json, env.d.ts",
+    "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, stylelint.config.*, .stylelint*, postcss*, nodemon.json, .npmrc, Dockerfile, .dockerignore"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.enable": true,
+  "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "prettier.enable": false,
+  "files.watcherExclude": {
+    "**/dist_electron/**": true,
+    "**/dist/**": true,
+    "**/.recon/**": true
+  },
+  "search.exclude": {
+    "**/dist_electron": true,
+    "**/dist": true,
+    "**/.recon": true
+  }
+}

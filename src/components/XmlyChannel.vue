@@ -14,8 +14,8 @@
       <el-table-column prop="intro" label="介绍" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button @click="pushPlaybackPlaylist(scope.row.albumId)" type="primary" size="mini">推送</el-button>
-          <el-button @click="favorite(scope.row.albumId, scope.row.albumTitle)" size="mini">收藏</el-button>
+          <el-button @click="pushPlaybackPlaylist(scope.row.albumId)" type="primary" size="small">推送</el-button>
+          <el-button @click="favorite(scope.row.albumId, scope.row.albumTitle)" size="small">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>

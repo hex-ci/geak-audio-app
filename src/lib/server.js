@@ -2,6 +2,7 @@ import express from 'express';
 import getServerPort from 'get-port';
 import cloneDeep from 'lodash/cloneDeep';
 import fs from 'fs';
+import path from 'path';
 
 const app = express();
 
@@ -47,7 +48,11 @@ app.get('/get-file', (req, res) => {
     }
   }
 
-  res.sendFile(req.query.path);
+  // Express 5 起 res.sendFile 不再接受「绝对路径直传」——实测会返回 404（Express 4 可以），
+  // 必须用 root + 文件名；这里按设备请求里的路径拆分。
+  const target = req.query.path;
+
+  res.sendFile(path.basename(target), { root: path.dirname(target) });
 });
 
 const startServer = async () => {

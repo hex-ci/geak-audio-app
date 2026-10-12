@@ -1,11 +1,15 @@
 'use strict'
 
 import { app, BrowserWindow, Menu, Tray } from 'electron'
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import path from 'path'
 import { install } from './lib/event'
+import { APP_INDEX_URL, registerAppProtocol, registerAppScheme } from './lib/app-protocol'
 
-const isDevelopment = process.env.NODE_ENV !== 'production'
+// 是否开发模式：以「是否打包」为准，不再依赖 NODE_ENV（打包后 NODE_ENV 未必存在）
+const isDevelopment = !app.isPackaged
+
+// 注册 app:// 协议的特权（必须在 app ready 之前，见 lib/app-protocol.js）
+registerAppScheme()
 
 let tray = null;
 let win = null;
@@ -20,23 +24,22 @@ async function createWindow() {
     center: true,
     title: '应用正在初始化...',
     webPreferences: {
-      // Use pluginOptions.nodeIntegration, leave this alone
-      // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
-      contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
+      // 渲染层只通过 preload 暴露的 window.$ipcRenderer 与主进程通信
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     }
   })
 
   win.removeMenu();
 
-  if (process.env.WEBPACK_DEV_SERVER_URL) {
+  if (process.env.VITE_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+    await win.loadURL(process.env.VITE_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
-    // 生产：从 asar 里用 file:// 加载
-    await win.loadFile(path.join(__dirname, 'index.html'))
+    // 生产：自定义 app:// 协议（资源用相对路径，见 vite.config.js 的 base: './'）
+    await win.loadURL(APP_INDEX_URL)
   }
 
   if (process.platform === 'win32') {
@@ -86,15 +89,11 @@ else {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
-  app.on('ready', async () => {
-    if (isDevelopment && !process.env.IS_TEST) {
-      // Install Vue Devtools
-      try {
-        await installExtension(VUEJS_DEVTOOLS)
-      } catch (e) {
-        console.error('Vue Devtools failed to install:', e.toString())
-      }
-    }
+  // 不再自动安装 Vue Devtools：electron-devtools-installer 已移除，
+  // 开发期调试由 Vite 侧的 vite-plugin-vue-devtools 提供。
+  app.on('ready', () => {
+    // app:// 的处理器要在 ready 之后注册，__dirname 是产物目录（打包后即 asar 内）
+    registerAppProtocol(__dirname)
     createWindow()
   });
 

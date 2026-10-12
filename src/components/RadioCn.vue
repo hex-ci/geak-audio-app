@@ -22,9 +22,15 @@
 
       <template v-else>
         <div class="selector-item">
-          <el-input ref="searchInput" v-model="keyword" class="search" clearable prefix-icon="el-icon-search"
-            placeholder="搜索全国电台（名称 / 台别）" @keyup.enter.native="doSearch" @clear="clearSearch">
-            <el-button slot="append" icon="el-icon-search" @click="doSearch">搜索</el-button>
+          <el-input ref="searchInput" v-model="keyword" class="search" clearable
+            placeholder="搜索全国电台（名称 / 台别）" @keyup.enter="doSearch" @clear="clearSearch">
+            <!-- 图标用插槽 + 全局注册的图标组件，避免在 <script> 里为空而多引一个变量 -->
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+            <template #append>
+              <el-button @click="doSearch"><el-icon><Search /></el-icon>搜索</el-button>
+            </template>
           </el-input>
         </div>
       </template>
@@ -38,9 +44,9 @@
       <el-table-column prop="tagName" label="台别" width="180" />
       <el-table-column label="操作" width="180">
         <template #default="scope">
-          <el-button @click="pushLivePlaylist(scope.row)" type="primary" size="mini"
+          <el-button @click="pushLivePlaylist(scope.row)" type="primary" size="small"
             :loading="pushingId === scope.row.contentId">推送直播</el-button>
-          <el-button @click="favorite(scope.row)" size="mini">收藏</el-button>
+          <el-button @click="favorite(scope.row)" size="small">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -451,6 +457,13 @@ export default {
 
       + .selector-item {
         margin-left: 20px;
+      }
+
+      // Element Plus 的 el-input / el-select 是 width: 100%，在 inline-block 的收缩容器里
+      // 会塌成内容宽度（Element UI 时代靠原生 <input> 的默认宽度撑着，约 235px）。
+      // 这里显式还原旧宽度，否则标签会被挤到换行、选项文字显示成省略号。
+      .el-select {
+        width: 235px;
       }
 
       &.count {

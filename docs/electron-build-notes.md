@@ -69,33 +69,24 @@
   与页面 origin 无关，所以换成 `file://` 不影响这些接口，也不涉及 CORS；
 - 窗口保持 `contextIsolation: true`、`nodeIntegration` 关闭。
 
-**要真正走正统路线，应做的是**（建议作为独立任务，而不是塞进这次修 bug）：
+**已落地（Electron 44 升级之后）**，实现在 `src/lib/app-protocol.js`：
 
-1. 把 Electron 从 13（已 EOL）升到当前稳定版；
-2. 渲染层改回自定义协议，但用新 API：
+1. app ready **之前**：`protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } }])`（同一 scheme 只注册一次）；
+2. app ready **之后**：`protocol.handle('app', handler)` —— 解析 URL，host 为 `.` 或空取产物根目录，`decodeURIComponent(pathname)` 后 `path.join`，再用 `path.relative` 做目录穿越校验（不通过回 400），最后 `net.fetch(pathToFileURL(target))`；
+3. 生产窗口 `win.loadURL('app://./index.html')`，资源保持相对路径（`vite.config.js` 里 electron 构建的 `base: './'`）。
 
-```js
-// 主进程，app ready 之前
-protocol.registerSchemesAsPrivileged([
-  { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } }
-])
+打包产物上的实测结果：
 
-// app ready 之后
-protocol.handle('app', (req) => {
-  const { host, pathname } = new URL(req.url)
-  const target = path.join(__dirname, host === '.' ? '' : host, pathname)
-  // 防目录穿越：必须校验 target 仍在 __dirname 之内
-  const rel = path.relative(__dirname, target)
-  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) {
-    return new Response('bad request', { status: 400 })
-  }
-  return net.fetch(pathToFileURL(target).toString())
-})
-```
+| 检查项 | 结果 |
+|---|---|
+| `location.href` / `origin` | `app://./index.html` / `app://.`（不再是 opaque origin） |
+| 界面渲染 | 145 个按钮、12 个页签、真实云听列表（19 个电台） |
+| 资源加载 | 失败资源 **0** 个；样式生效（`styleSheets` 1、EP 默认按钮底色、应用字体） |
+| 内容源接口 | 新 origin 下仍可用（未触发 CORS 问题） |
+| 目录穿越 | `app://./%2e%2e%2fpackage.json` → **400**；正常资源 → 200；缺失资源 → 404 |
+| 真机链路 | 本机播放列表推送 → 界面「推送完成」+ 设备 `PLAYING`，express `/get-file` 正常、无 `NotFoundError` |
 
-3. `vue.config.js` 的 `publicPath` 再改回 `app://./`（或保持相对路径 + `app://./index.html` 一并验证）。
-
-升级会连带处理一批 breaking changes（sandbox 默认开启、`remote` 移除、协议 API 替换等），所以要单独排期与回归。
+也就是说：先前"可用但非安全上最优"的取舍已经消除，现在走的是官方推荐的自定义协议路线。
 
 ## 验证（打包后）
 

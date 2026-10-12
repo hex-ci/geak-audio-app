@@ -1,73 +1,30 @@
-import Vue from 'vue'
-import {
-  Button,
-  ButtonGroup,
-  Message,
-  Tabs,
-  TabPane,
-  Loading,
-  Table,
-  TableColumn,
-  Slider,
-  Notification,
-  Select,
-  Option,
-  Pagination,
-  Cascader,
-  Input,
-  Upload,
-  Alert,
-  Dialog,
-  Form,
-  FormItem,
-  Popover,
-  Popconfirm,
-  MessageBox,
-  Switch,
-  InputNumber,
-  Divider,
-  Tooltip
-} from 'element-ui';
+import { createApp } from 'vue'
+import ElementPlus, { ElMessage, ElNotification, ElMessageBox, ElLoading } from 'element-plus'
+import * as ElementPlusIcons from '@element-plus/icons-vue'
 
-import 'normalize.css';
+import 'normalize.css'
+// Element Plus 默认主题
+import 'element-plus/dist/index.css'
 
 import App from './App.vue'
 
-Vue.use(Button);
-Vue.use(ButtonGroup);
-Vue.use(Tabs);
-Vue.use(TabPane);
-Vue.use(Loading.directive);
-Vue.use(Table);
-Vue.use(TableColumn);
-Vue.use(Slider);
-Vue.use(Select);
-Vue.use(Option);
-Vue.use(Pagination);
-Vue.use(Cascader);
-Vue.use(Input);
-Vue.use(Upload);
-Vue.use(Alert);
-Vue.use(Dialog);
-Vue.use(Form);
-Vue.use(FormItem);
-Vue.use(Popover);
-Vue.use(Popconfirm);
-Vue.use(Switch);
-Vue.use(InputNumber);
-Vue.use(Divider);
-Vue.use(Tooltip);
+const app = createApp(App)
 
-Vue.prototype.$message = Message;
-Vue.prototype.$loading = Loading.service;
-Vue.prototype.$notify = Notification;
-Vue.prototype.$msgbox = MessageBox;
-Vue.prototype.$alert = MessageBox.alert;
-Vue.prototype.$confirm = MessageBox.confirm;
-Vue.prototype.$prompt = MessageBox.prompt;
+// Element Plus 的图标是组件（不再是 el-icon-xxx 字体类），全局注册后模板里可直接用 <Search />
+for (const [name, component] of Object.entries(ElementPlusIcons)) {
+  app.component(name, component)
+}
 
-Vue.config.productionTip = false
+app.use(ElementPlus)
 
-new Vue({
-  render: h => h(App)
-}).$mount('#app')
+// 与原 Element UI 保持同名的全局方法：渲染层里的 $message / $notify / $confirm /
+// $alert / $prompt / $msgbox / $loading 调用点（共 16 处）因此无需改动。
+app.config.globalProperties.$message = ElMessage
+app.config.globalProperties.$notify = ElNotification
+app.config.globalProperties.$msgbox = ElMessageBox
+app.config.globalProperties.$alert = ElMessageBox.alert
+app.config.globalProperties.$confirm = ElMessageBox.confirm
+app.config.globalProperties.$prompt = ElMessageBox.prompt
+app.config.globalProperties.$loading = ElLoading.service
+
+app.mount('#app')

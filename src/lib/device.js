@@ -361,7 +361,8 @@ const searchDeviceFromCache = async ({ force = false } = {}) => {
 
     // 校验缓存地址。两级：先取描述文件（便宜），再真调一次动作（关键）——
     // 实测旧实例有时仍能取到 renderer.xml（缓存里 49152、真机在 49153），只校验描述文件会误判为可用。
-    let usable = false;
+    // 下面 try/catch 两条路径都会赋值，所以这里不写初始值（否则是无用赋值）
+    let usable;
 
     try {
       await axios.get(rendererUrl, { timeout: 1000 });

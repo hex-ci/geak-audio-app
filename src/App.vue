@@ -1,29 +1,31 @@
 <template>
   <div class="app">
+    <!-- 顶部这一栏不写 size：Element Plus 的默认尺寸(32px) 等于 Element UI 的 size="small"，
+         写 size="small" 会变成 24px（小一号）。 -->
     <div class="player">
       <el-button-group>
-        <el-button size="small" @click="play">播放</el-button>
-        <el-button size="small" @click="stop">停止</el-button>
-        <el-button size="small" @click="pause">暂停</el-button>
-        <el-button size="small" @click="previous">上一首</el-button>
-        <el-button size="small" @click="next">下一首</el-button>
+        <el-button @click="play">播放</el-button>
+        <el-button @click="stop">停止</el-button>
+        <el-button @click="pause">暂停</el-button>
+        <el-button @click="previous">上一首</el-button>
+        <el-button @click="next">下一首</el-button>
       </el-button-group>
       <el-button-group>
-        <el-select v-model="mode" @change="changeMode" size="small">
+        <el-select v-model="mode" @change="changeMode">
           <el-option label="顺序播放" value="SEQUENCE_PLAY"></el-option>
           <el-option label="随机播放" value="RANDOM_PLAY"></el-option>
           <el-option label="单曲循环" value="SINGLE_CYCLE"></el-option>
         </el-select>
       </el-button-group>
       <el-button-group>
-        <el-button size="small" @click="showInfo">查看音响信息</el-button>
-        <el-button size="small" @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
-        <el-button size="small" @click="reboot">重启</el-button>
-        <el-button size="small" @click="shutdown">关机</el-button>
+        <el-button @click="showInfo">查看音响信息</el-button>
+        <el-button @click="minimize" v-if="platform === 'win32'">最小化到任务栏</el-button>
+        <el-button @click="reboot">重启</el-button>
+        <el-button @click="shutdown">关机</el-button>
       </el-button-group>
       <div class="player-item-outer">
         <div class="player-item">
-          <el-button type="text" @click="mute">音量</el-button><el-slider v-model="volume" @change="changeVolume"></el-slider>
+          <el-button text @click="mute">音量</el-button><el-slider v-model="volume" @change="changeVolume"></el-slider>
         </div>
       </div>
     </div>
@@ -56,7 +58,7 @@
 
     <el-dialog
       title="音响信息"
-      :visible.sync="infoDialogVisible"
+      v-model="infoDialogVisible"
       width="600px"
     >
       <el-form ref="form" label-width="120px" v-if="deviceInfo.device">
@@ -82,23 +84,27 @@
           <span>{{ deviceInfo.power }}%</span>
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="infoDialogVisible = false">关闭</el-button>
-      </span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="infoDialogVisible = false">关闭</el-button>
+        </span>
+      </template>
     </el-dialog>
 
     <el-dialog
       title="搜索设备..."
-      :visible.sync="loading"
+      v-model="loading"
       width="600px"
       :show-close="false"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
     >
-      <p class="loading"><i class="el-icon-loading"></i> 正在搜索设备，可能需要几分钟，请稍候，如取消可能导致程序异常</p>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="stopSearchDevice">取消</el-button>
-      </span>
+      <p class="loading"><el-icon class="is-loading"><Loading /></el-icon> 正在搜索设备，可能需要几分钟，请稍候，如取消可能导致程序异常</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="stopSearchDevice">取消</el-button>
+        </span>
+      </template>
     </el-dialog>
   </div>
 </template>

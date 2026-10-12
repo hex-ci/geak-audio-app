@@ -109,3 +109,4 @@ package-lock.json
 .DS_Store
 
 .recon/
+.hermes/

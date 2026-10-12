@@ -23,8 +23,8 @@
       <el-table-column prop="programName" label="当前节目" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button @click="pushLivePlaylist(scope.row.id)" type="primary" size="mini">推送</el-button>
-          <el-button @click="favorite(scope.row.id, scope.row.name)" size="mini">收藏</el-button>
+          <el-button @click="pushLivePlaylist(scope.row.id)" type="primary" size="small">推送</el-button>
+          <el-button @click="favorite(scope.row.id, scope.row.name)" size="small">收藏</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -161,6 +161,11 @@ export default {
 
       + .selector-item {
         margin-left: 20px;
+      }
+
+      // 同 RadioCn：Element Plus 下 el-select 会塌成内容宽度，显式还原旧宽度
+      .el-select {
+        width: 235px;
       }
     }
   }

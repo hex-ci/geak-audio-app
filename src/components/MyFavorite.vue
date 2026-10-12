@@ -2,7 +2,9 @@
   <div class="my-favorite" v-loading="loading">
     <div class="selector">
       <el-popconfirm title="确认删除所有收藏夹内容吗？" class="clear" @confirm="removeAll">
-        <el-button type="danger" slot="reference">清除收藏夹</el-button>
+        <template #reference>
+          <el-button type="danger">清除收藏夹</el-button>
+        </template>
       </el-popconfirm>
       <el-button @click="refresh">刷新</el-button>
     </div>
@@ -12,8 +14,8 @@
       <el-table-column prop="title" label="频道/专辑" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button @click="push(scope.row)" type="primary" size="mini">推送</el-button>
-          <el-button @click="remove(scope.$index)" type="danger" size="mini">删除</el-button>
+          <el-button @click="push(scope.row)" type="primary" size="small">推送</el-button>
+          <el-button @click="remove(scope.$index)" type="danger" size="small">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

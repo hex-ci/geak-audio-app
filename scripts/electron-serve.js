@@ -1,14 +1,21 @@
-const fs = require('fs');
-const http = require('http');
-const path = require('path');
-const { spawn } = require('child_process');
-const getPort = require('get-port');
-const { buildMain } = require('./build-main');
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import getPort from 'get-port';
+import { buildMain } from './build-main.js';
 
-const root = path.resolve(__dirname, '..');
+const require = createRequire(import.meta.url);
+
+const root = path.resolve(import.meta.dirname, '..');
 const outDir = path.join(root, 'dist_electron/dev');
 const mainWatch = ['src/background.js', 'src/preload.js'];
 
+// Vite 7+ 的 package exports 不再暴露 bin/vite.js，直接按路径引用本地 CLI
+const viteBin = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
+
+// electron 包在 Node 里导出的是可执行文件路径（CJS），用 createRequire 取最稳
 const electronPath = require('electron');
 
 const children = [];
@@ -48,12 +55,14 @@ const waitForServer = (url) => new Promise((resolve) => {
 
   await rebuild();
 
+  // Vite dev server：端口通过 VITE_DEV_PORT 传给 vite.config.js（固定 + strictPort）
   const devServer = spawn(process.execPath, [
-    require.resolve('@vue/cli-service/bin/vue-cli-service.js'),
-    'serve',
-    '--port',
-    String(port)
-  ], { cwd: root, stdio: 'inherit', env: { ...process.env, IS_ELECTRON: '1' } });
+    viteBin
+  ], {
+    cwd: root,
+    stdio: 'inherit',
+    env: { ...process.env, IS_ELECTRON: '1', VITE_DEV_PORT: String(port) }
+  });
 
   children.push(devServer);
 
@@ -82,12 +91,13 @@ const waitForServer = (url) => new Promise((resolve) => {
     restartQueue = restartQueue.then(async () => {
       await stopElectron();
 
-      const current = spawn(electronPath, [outDir], {
+      // dev 实例也开远程调试端口（9223，避开打包产物的 9222），便于自动化检查渲染层
+      const current = spawn(electronPath, [outDir, '--remote-debugging-port=9223'], {
         cwd: root,
         stdio: 'inherit',
         env: {
           ...process.env,
-          WEBPACK_DEV_SERVER_URL: url,
+          VITE_DEV_SERVER_URL: url,
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         }
       });

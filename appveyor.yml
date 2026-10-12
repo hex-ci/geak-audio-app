@@ -17,4 +17,4 @@ install:
 build_script:
   - npm run electron:build:ci
 
-test: off
+test: false

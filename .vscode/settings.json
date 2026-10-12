@@ -13,15 +13,5 @@
   "eslint.enable": true,
   "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
   "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "prettier.enable": false,
-  "files.watcherExclude": {
-    "**/dist_electron/**": true,
-    "**/dist/**": true,
-    "**/.recon/**": true
-  },
-  "search.exclude": {
-    "**/dist_electron": true,
-    "**/dist": true,
-    "**/.recon": true
-  }
+  "prettier.enable": false
 }

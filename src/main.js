@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import ElementPlus, { ElMessage, ElNotification, ElMessageBox, ElLoading } from 'element-plus'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
 
 import 'normalize.css'
@@ -15,7 +16,7 @@ for (const [name, component] of Object.entries(ElementPlusIcons)) {
   app.component(name, component)
 }
 
-app.use(ElementPlus)
+app.use(ElementPlus, { locale: zhCn })
 
 // 与原 Element UI 保持同名的全局方法：渲染层里的 $message / $notify / $confirm /
 // $alert / $prompt / $msgbox / $loading 调用点（共 16 处）因此无需改动。

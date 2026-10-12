@@ -41,9 +41,7 @@
     "lodash": "^4.17.21",
     "netmask": "^2.0.2",
     "normalize.css": "^8.0.1",
-    "vue": "^2.7.14",
-    "vue-router": "^3.6.5",
-    "vuex": "^3.6.2"
+    "vue": "^2.7.14"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

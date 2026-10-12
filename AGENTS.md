@@ -33,7 +33,6 @@ GEAK Audio（果壳智能音响桌面工具）：Electron 应用，通过 UPnP/D
 - `scripts/build-main.js` — esbuild 打主进程与 preload，依赖全部打进去，产物目录不需要 node_modules；`scripts/electron-build.js`、`scripts/electron-serve.js` 分别是打包与开发入口。
 - electron-builder 配置在 package.json 的 `build` 字段：appDir 为 `dist_electron/bundled`，`npmRebuild: false`（依赖已打进主进程包、没有原生模块，避免打包时再跑一次 npm install）。
 - `build/icon.png` 是 electron-builder 图标（手工维护）；`dist/`、`dist_electron/` 是构建产物，已 gitignore。
-- 没有 vue-router / vuex：依赖里装着，但 `main.js` 里是注释状态，切页靠 App.vue 的 `el-tabs`。不要把它们接回来。
 
 ## 约定
 
